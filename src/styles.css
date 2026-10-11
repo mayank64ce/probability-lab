@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* Theme is driven by an explicit attribute so the user's choice beats the OS. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+:root {
+  --surface: #ffffff;
+  --surface-raised: #f6f7fb;
+  --surface-sunken: #eceef6;
+  --border: #dfe3ee;
+  --text: #11162a;
+  --text-muted: #5a6280;
+  --accent: #4f46e5;
+  --accent-soft: #eceaff;
+  --accent-text: #3b32c7;
+  --correct: #0f7a52;
+  --correct-soft: #e1f6ec;
+  --wrong: #b4323f;
+  --wrong-soft: #fdeaec;
+  --warn: #8a5a05;
+  --warn-soft: #fdf3dd;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --surface: #0b1020;
+  --surface-raised: #151b31;
+  --surface-sunken: #1d2542;
+  --border: #2a3354;
+  --text: #eef1fb;
+  --text-muted: #a2abc9;
+  --accent: #8b85ff;
+  --accent-soft: #241f52;
+  --accent-text: #b9b4ff;
+  --correct: #5fd3a2;
+  --correct-soft: #103a2a;
+  --wrong: #ff8a94;
+  --wrong-soft: #40181e;
+  --warn: #f0c070;
+  --warn-soft: #3b2e10;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* Stop iOS Safari from inflating text in landscape. */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Honour the OS only until the user picks a theme explicitly. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface: #0b1020;
+    --surface-raised: #151b31;
+    --surface-sunken: #1d2542;
+    --border: #2a3354;
+    --text: #eef1fb;
+    --text-muted: #a2abc9;
+    --accent: #8b85ff;
+    --accent-soft: #241f52;
+    --accent-text: #b9b4ff;
+    --correct: #5fd3a2;
+    --correct-soft: #103a2a;
+    --wrong: #ff8a94;
+    --wrong-soft: #40181e;
+    --warn: #f0c070;
+    --warn-soft: #3b2e10;
+    color-scheme: dark;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* KaTeX inherits our colour tokens rather than its own near-black. */
+.katex {
+  color: inherit;
+  font-size: 1.04em;
+}
+
+.katex-display {
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+}
