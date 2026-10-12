@@ -1,25 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MultipleChoiceExercise } from "../../content/schema";
 import { validateChoice } from "../../engine/answerValidator";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 import { InlineText } from "../ui/RichText";
-import type { Feedback } from "./FeedbackBanner";
+import type { Feedback } from "./Feedback";
+
+const LETTERS = "ABCDEFGH";
 
 export function MultipleChoiceView({
   exercise,
   submitted,
-  wasCorrect,
   onSubmit,
-  onRetry,
 }: {
   exercise: MultipleChoiceExercise;
   submitted: boolean;
-  wasCorrect: boolean;
   onSubmit: (answer: string, correct: boolean, feedback: Feedback) => void;
-  onRetry: () => void;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const multi = exercise.multiSelect === true;
+
+  // Retry lives in the action bar, so the selection clears from here whenever
+  // the stage drops back out of its submitted state.
+  useEffect(() => {
+    if (!submitted) setSelected([]);
+  }, [submitted]);
 
   function toggle(id: string) {
     if (submitted) return;
@@ -48,20 +53,32 @@ export function MultipleChoiceView({
   }
 
   return (
-    <div className="space-y-3">
-      <div role={multi ? "group" : "radiogroup"} aria-label="Answer choices" className="space-y-2">
-        {exercise.choices.map((choice) => {
+    <div className="space-y-4">
+      <div
+        role={multi ? "group" : "radiogroup"}
+        aria-label="Answer choices"
+        className="space-y-2.5"
+      >
+        {exercise.choices.map((choice, i) => {
           const isSelected = selected.includes(choice.id);
           const revealCorrect = submitted && choice.correct === true;
           const revealWrong = submitted && isSelected && choice.correct !== true;
 
-          const style = revealCorrect
-            ? { background: "var(--correct-soft)", borderColor: "var(--correct)" }
+          const shell = revealCorrect
+            ? "border-good bg-good-soft"
             : revealWrong
-              ? { background: "var(--wrong-soft)", borderColor: "var(--wrong)" }
+              ? "border-bad bg-bad-soft"
               : isSelected
-                ? { background: "var(--accent-soft)", borderColor: "var(--accent)" }
-                : { background: "var(--surface)", borderColor: "var(--border)" };
+                ? "border-accent bg-accent-soft"
+                : "border-line bg-surface hover:border-line-strong";
+
+          const mark = revealCorrect
+            ? "border-good bg-good text-white"
+            : revealWrong
+              ? "border-bad bg-bad text-white"
+              : isSelected
+                ? "border-accent bg-accent text-white"
+                : "border-line-strong text-ink-muted";
 
           return (
             <button
@@ -71,51 +88,33 @@ export function MultipleChoiceView({
               aria-checked={isSelected}
               disabled={submitted}
               onClick={() => toggle(choice.id)}
-              className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-[0.95rem] transition-colors disabled:cursor-default"
-              style={style}
+              className={`pressable flex w-full items-center gap-3.5 rounded-2xl border-2 px-4 py-3.5 text-left text-[1rem] font-semibold disabled:cursor-default ${shell}`}
             >
               <span
                 aria-hidden="true"
-                className="flex h-5 w-5 shrink-0 items-center justify-center border-2 text-[0.65rem] font-bold"
-                style={{
-                  borderRadius: multi ? 5 : 999,
-                  borderColor: isSelected || revealCorrect ? "var(--accent)" : "var(--border)",
-                  background: isSelected ? "var(--accent)" : "transparent",
-                  color: "#fff",
-                }}
+                className={`flex h-8 w-8 shrink-0 items-center justify-center border-2 text-[0.8rem] font-extrabold transition-colors ${mark}`}
+                style={{ borderRadius: multi ? 10 : 999 }}
               >
-                {isSelected ? "✓" : ""}
+                {revealCorrect || (isSelected && !submitted) ? (
+                  <Icon name="check" size={16} strokeWidth={3} />
+                ) : revealWrong ? (
+                  <Icon name="close" size={15} strokeWidth={3} />
+                ) : (
+                  LETTERS[i]
+                )}
               </span>
               <span className="min-w-0 flex-1">
                 <InlineText text={choice.label} />
               </span>
-              {revealCorrect && (
-                <span aria-hidden="true" className="text-sm" style={{ color: "var(--correct)" }}>
-                  ✓
-                </span>
-              )}
             </button>
           );
         })}
       </div>
 
-      {!submitted ? (
+      {!submitted && (
         <Button onClick={submit} disabled={selected.length === 0} className="w-full sm:w-auto">
           Check answer
         </Button>
-      ) : (
-        !wasCorrect && (
-          <Button
-            variant="secondary"
-            className="w-full sm:w-auto"
-            onClick={() => {
-              setSelected([]);
-              onRetry();
-            }}
-          >
-            Try again
-          </Button>
-        )
       )}
     </div>
   );

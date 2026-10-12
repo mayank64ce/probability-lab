@@ -3,47 +3,121 @@
 /* Theme is driven by an explicit attribute so the user's choice beats the OS. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/*
+ * Design tokens live in @theme, which means Tailwind generates real utilities
+ * for them — `bg-surface`, `text-ink-muted`, `border-line` — instead of every
+ * component carrying an inline style object. The dark blocks further down
+ * reassign the same custom properties, so no utility has to know about themes.
+ */
 @theme {
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --color-canvas: #fbfbfd;
+  --color-surface: #ffffff;
+  --color-raised: #f5f7fc;
+  --color-sunken: #eceff8;
+
+  --color-line: #e4e7f2;
+  --color-line-strong: #ccd2e6;
+
+  --color-ink: #10182b;
+  --color-ink-muted: #5b6480;
+
+  --color-accent: #2f58e8;
+  --color-accent-deep: #1f3fb8;
+  --color-accent-ink: #2546c4;
+  --color-accent-soft: #e9eefe;
+
+  --color-good: #16a34a;
+  --color-good-deep: #0f7a38;
+  --color-good-ink: #0a7a44;
+  --color-good-soft: #e6f7ee;
+
+  --color-bad: #e03a43;
+  --color-bad-deep: #b02a32;
+  --color-bad-ink: #bb2630;
+  --color-bad-soft: #fdecec;
+
+  --color-warn: #e8a33d;
+  --color-warn-ink: #8f5f0b;
+  --color-warn-soft: #fdf4e3;
+
+  --radius-card: 1.25rem;
+
+  --shadow-card: 0 1px 2px rgb(16 24 43 / 0.04), 0 10px 26px -14px rgb(16 24 43 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(16 24 43 / 0.06), 0 20px 42px -18px rgb(16 24 43 / 0.3);
 }
 
-:root {
-  --surface: #ffffff;
-  --surface-raised: #f6f7fb;
-  --surface-sunken: #eceef6;
-  --border: #dfe3ee;
-  --text: #11162a;
-  --text-muted: #5a6280;
-  --accent: #4f46e5;
-  --accent-soft: #eceaff;
-  --accent-text: #3b32c7;
-  --correct: #0f7a52;
-  --correct-soft: #e1f6ec;
-  --wrong: #b4323f;
-  --wrong-soft: #fdeaec;
-  --warn: #8a5a05;
-  --warn-soft: #fdf3dd;
-  color-scheme: light;
+/* Honour the OS until the user picks a theme explicitly. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-canvas: #0a0d16;
+    --color-surface: #121725;
+    --color-raised: #191f31;
+    --color-sunken: #222942;
+    --color-line: #262d45;
+    --color-line-strong: #3a4364;
+    --color-ink: #eef1fa;
+    --color-ink-muted: #99a2bf;
+    --color-accent: #7f9cff;
+    --color-accent-deep: #4f6fd6;
+    --color-accent-ink: #a9bcff;
+    --color-accent-soft: #1b2446;
+    --color-good: #3ddc97;
+    --color-good-deep: #23a773;
+    --color-good-ink: #5fe3ab;
+    --color-good-soft: #0f3528;
+    --color-bad: #ff7a85;
+    --color-bad-deep: #c7515c;
+    --color-bad-ink: #ff939c;
+    --color-bad-soft: #3b1920;
+    --color-warn: #f0b760;
+    --color-warn-ink: #f3c67f;
+    --color-warn-soft: #362712;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 26px -14px rgb(0 0 0 / 0.6);
+    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 20px 42px -18px rgb(0 0 0 / 0.7);
+    color-scheme: dark;
+  }
 }
 
+/*
+ * Same values again under the explicit attribute. It has to come after the
+ * media query: both selectors carry identical specificity, so source order is
+ * what lets "dark" win while the OS is set to light.
+ */
 :root[data-theme="dark"] {
-  --surface: #0b1020;
-  --surface-raised: #151b31;
-  --surface-sunken: #1d2542;
-  --border: #2a3354;
-  --text: #eef1fb;
-  --text-muted: #a2abc9;
-  --accent: #8b85ff;
-  --accent-soft: #241f52;
-  --accent-text: #b9b4ff;
-  --correct: #5fd3a2;
-  --correct-soft: #103a2a;
-  --wrong: #ff8a94;
-  --wrong-soft: #40181e;
-  --warn: #f0c070;
-  --warn-soft: #3b2e10;
+  --color-canvas: #0a0d16;
+  --color-surface: #121725;
+  --color-raised: #191f31;
+  --color-sunken: #222942;
+  --color-line: #262d45;
+  --color-line-strong: #3a4364;
+  --color-ink: #eef1fa;
+  --color-ink-muted: #99a2bf;
+  --color-accent: #7f9cff;
+  --color-accent-deep: #4f6fd6;
+  --color-accent-ink: #a9bcff;
+  --color-accent-soft: #1b2446;
+  --color-good: #3ddc97;
+  --color-good-deep: #23a773;
+  --color-good-ink: #5fe3ab;
+  --color-good-soft: #0f3528;
+  --color-bad: #ff7a85;
+  --color-bad-deep: #c7515c;
+  --color-bad-ink: #ff939c;
+  --color-bad-soft: #3b1920;
+  --color-warn: #f0b760;
+  --color-warn-ink: #f3c67f;
+  --color-warn-soft: #362712;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 26px -14px rgb(0 0 0 / 0.6);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 20px 42px -18px rgb(0 0 0 / 0.7);
   color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 html,
@@ -54,40 +128,96 @@ body,
 
 body {
   margin: 0;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--color-canvas);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: -0.003em;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   /* Stop iOS Safari from inflating text in landscape. */
   -webkit-text-size-adjust: 100%;
 }
 
-/* Honour the OS only until the user picks a theme explicitly. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface: #0b1020;
-    --surface-raised: #151b31;
-    --surface-sunken: #1d2542;
-    --border: #2a3354;
-    --text: #eef1fb;
-    --text-muted: #a2abc9;
-    --accent: #8b85ff;
-    --accent-soft: #241f52;
-    --accent-text: #b9b4ff;
-    --correct: #5fd3a2;
-    --correct-soft: #103a2a;
-    --wrong: #ff8a94;
-    --wrong-soft: #40181e;
-    --warn: #f0c070;
-    --warn-soft: #3b2e10;
-    color-scheme: dark;
-  }
+/* Display type is tighter and heavier than body copy, the way Brilliant sets it. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.021em;
+  line-height: 1.18;
+  text-wrap: balance;
 }
 
 *:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
+}
+
+/*
+ * Pressable buttons. The solid bottom edge reads as physical depth without a
+ * blurry drop shadow, and the press takes the button down onto it.
+ */
+.pressable {
+  box-shadow: 0 3px 0 0 var(--press-edge, transparent);
+  transition:
+    transform 90ms ease,
+    box-shadow 90ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.pressable:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 0 var(--press-edge, transparent);
+}
+
+.pressable:disabled {
+  box-shadow: none;
+}
+
+/* Cards that respond to a pointer without jumping around on touch. */
+@media (hover: hover) {
+  .liftable {
+    transition:
+      transform 160ms ease,
+      box-shadow 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .liftable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+@keyframes drawer-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-drawer {
+  animation: drawer-rise 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-rise {
+  animation: fade-rise 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -97,12 +227,20 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+
+  .pressable:not(:disabled):active {
+    transform: none;
+  }
+
+  .liftable:hover {
+    transform: none;
+  }
 }
 
 /* KaTeX inherits our colour tokens rather than its own near-black. */
 .katex {
   color: inherit;
-  font-size: 1.04em;
+  font-size: 1.05em;
 }
 
 .katex-display {
@@ -110,4 +248,9 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 2px 0;
+}
+
+/* Keep long formulae from forcing the whole page sideways on a phone. */
+.katex-display > .katex {
+  white-space: normal;
 }

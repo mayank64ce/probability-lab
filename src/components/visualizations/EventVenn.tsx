@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useId, useState } from "react";
 import type { VisualizationProps } from "./types";
 import { numberFrom } from "./types";
@@ -21,13 +22,10 @@ export function EventVenn({ config }: VisualizationProps) {
   const conditional = pB > 0 ? pAB / pB : NaN;
 
   return (
-    <figure className="space-y-3">
-      <div
-        className="rounded-2xl p-3 sm:p-4"
-        style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}
-      >
+    <figure className="space-y-4">
+      <div className="border-line bg-surface rounded-card border p-4 shadow-card sm:p-5">
         <svg
-          viewBox="0 0 320 170"
+          viewBox="0 0 320 180"
           className="w-full"
           role="img"
           aria-label={
@@ -38,7 +36,7 @@ export function EventVenn({ config }: VisualizationProps) {
         >
           <defs>
             <clipPath id={`${clipId}-b`}>
-              <circle cx="195" cy="85" r="62" />
+              <circle cx="196" cy="92" r="64" />
             </clipPath>
           </defs>
 
@@ -47,18 +45,19 @@ export function EventVenn({ config }: VisualizationProps) {
             x="4"
             y="4"
             width="312"
-            height="162"
-            rx="12"
-            fill="var(--surface-sunken)"
-            stroke="var(--border)"
+            height="172"
+            rx="18"
+            className="fill-sunken stroke-line"
+            strokeWidth="2"
             style={{ transition: "opacity 300ms" }}
-            opacity={conditioned ? 0.3 : 1}
+            opacity={conditioned ? 0.35 : 1}
           />
           <text
-            x="16"
-            y="24"
-            fontSize="12"
-            fill="var(--text-muted)"
+            x="18"
+            y="28"
+            fontSize="13"
+            fontWeight="700"
+            className="fill-ink-muted"
             opacity={conditioned ? 0.35 : 1}
           >
             Ω
@@ -66,48 +65,46 @@ export function EventVenn({ config }: VisualizationProps) {
 
           {/* Event A. */}
           <circle
-            cx="125"
-            cy="85"
-            r="62"
-            fill="var(--accent)"
-            fillOpacity={conditioned ? 0.08 : 0.2}
-            stroke="var(--accent)"
-            strokeWidth="2"
-            strokeOpacity={conditioned ? 0.3 : 1}
+            cx="124"
+            cy="92"
+            r="64"
+            className="fill-accent stroke-accent"
+            fillOpacity={conditioned ? 0.07 : 0.18}
+            strokeWidth="2.5"
+            strokeOpacity={conditioned ? 0.25 : 0.9}
             style={{ transition: "fill-opacity 300ms, stroke-opacity 300ms" }}
           />
 
           {/* Event B — stays fully lit when it becomes the new universe. */}
           <circle
-            cx="195"
-            cy="85"
-            r="62"
-            fill="var(--accent)"
-            fillOpacity={conditioned ? 0.16 : 0.2}
-            stroke="var(--accent-text)"
-            strokeWidth={conditioned ? 3 : 2}
+            cx="196"
+            cy="92"
+            r="64"
+            className="fill-accent stroke-accent"
+            fillOpacity={conditioned ? 0.16 : 0.18}
+            strokeWidth={conditioned ? 4 : 2.5}
             style={{ transition: "stroke-width 300ms" }}
           />
 
           {/* The intersection, drawn by clipping A against B. */}
           <g clipPath={`url(#${clipId}-b)`}>
-            <circle cx="125" cy="85" r="62" fill="var(--accent)" fillOpacity="0.55" />
+            <circle cx="124" cy="92" r="64" className="fill-accent" fillOpacity="0.58" />
           </g>
 
           <text
-            x="72"
-            y="90"
-            fontSize="15"
-            fontWeight="600"
-            fill="var(--text)"
-            opacity={conditioned ? 0.4 : 1}
+            x="68"
+            y="98"
+            fontSize="17"
+            fontWeight="800"
+            className="fill-ink"
+            opacity={conditioned ? 0.35 : 1}
           >
             A
           </text>
-          <text x="238" y="90" fontSize="15" fontWeight="600" fill="var(--text)">
+          <text x="242" y="98" fontSize="17" fontWeight="800" className="fill-ink">
             B
           </text>
-          <text x="148" y="90" fontSize="11" fontWeight="600" fill="var(--text)">
+          <text x="146" y="98" fontSize="12" fontWeight="800" className="fill-ink">
             A∩B
           </text>
         </svg>
@@ -117,47 +114,39 @@ export function EventVenn({ config }: VisualizationProps) {
         type="button"
         aria-pressed={conditioned}
         onClick={() => setConditioned((v) => !v)}
-        className="min-h-11 w-full rounded-xl px-4 text-sm font-semibold transition-colors"
+        className={`pressable min-h-13 w-full rounded-2xl px-4 text-sm font-bold ${
+          conditioned ? "bg-accent text-white" : "bg-surface border-line-strong text-ink border-2"
+        }`}
         style={
-          conditioned
-            ? { background: "var(--accent)", color: "#fff" }
-            : {
-                background: "var(--surface-raised)",
-                color: "var(--text)",
-                border: "1px solid var(--border)",
-              }
+          {
+            "--press-edge": conditioned ? "var(--color-accent-deep)" : "var(--color-line-strong)",
+          } as CSSProperties
         }
       >
         {conditioned ? "Showing the whole sample space restricted to B" : "Condition on B"}
       </button>
 
-      <div
-        className="rounded-xl px-4 py-3"
-        style={{ background: "var(--accent-soft)" }}
-        aria-live="polite"
-      >
+      <div className="bg-accent-soft rounded-card px-5 py-4" aria-live="polite">
         {conditioned ? (
           <>
-            <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+            <p className="text-accent-ink text-xs font-extrabold tracking-wide">
               P(A | B) = P(A ∩ B) / P(B)
             </p>
-            <p className="mt-0.5 text-xl font-semibold tabular-nums">
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">
               {pAB} / {pB} = {conditional.toFixed(2)}
             </p>
           </>
         ) : (
           <>
-            <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-              Unconditional
-            </p>
-            <p className="mt-0.5 text-xl font-semibold tabular-nums">
+            <p className="text-accent-ink text-xs font-extrabold tracking-wide">Unconditional</p>
+            <p className="mt-1 text-2xl font-extrabold tabular-nums">
               P(A) = {pA} &nbsp;·&nbsp; P(A ∩ B) = {pAB}
             </p>
           </>
         )}
       </div>
 
-      <figcaption className="text-sm" style={{ color: "var(--text-muted)" }}>
+      <figcaption className="text-ink-muted text-sm">
         {conditioned
           ? "B is now the entire universe. The overlap did not grow — it simply makes up a larger share of what is left."
           : "A and B overlap. Press the button to make B the only thing that counts."}

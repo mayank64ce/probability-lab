@@ -48,7 +48,7 @@ src/
 │   ├── lessons/        Stage renderer
 │   ├── exercises/      Multiple choice, numeric, visual, hints, feedback
 │   ├── visualizations/ Keyed registry, referenced from content by string
-│   └── ui/             Math (KaTeX), rich text, buttons, cards
+│   └── ui/             Design system: tokens, icons, buttons, cards, KaTeX, rich text
 ├── engine/
 │   ├── answerValidator.ts   Grading. Pure, and the sole authority on correctness
 │   ├── lessonRunner.ts      Stage navigation rules
@@ -67,6 +67,8 @@ src/
 - **Mastery is never granted for finishing a lesson.** Reaching `proficient` needs three independent correct answers at 75% accuracy; `mastered` additionally requires surviving a gap of a week, because recall after a delay is the thing that matters. Any miss drops the concept straight to `review-needed`.
 - **Validators are pure and exhaustively tested.** Unit slips (`0.2` for a question asking a percentage) and unreduced fractions (`4/12`) get their own named feedback instead of a bare "wrong".
 - **Routes are code-split** so KaTeX and its fonts — about 286 kB, pulled in only by lesson content — stay off the critical path. The initial bundle is ~94 kB gzipped.
+- **Design tokens live in Tailwind's `@theme`,** so a themed colour is a real utility (`bg-surface`, `text-ink-muted`) rather than an inline style object on every element. Dark mode reassigns the same custom properties; no component knows which theme is active.
+- **A lesson takes over the viewport.** It routes outside the app shell, with its own header, segmented per-screen progress, and a bottom action bar that doubles as the place the verdict appears — so the answer you just gave stays on screen while the explanation arrives under it.
 - **`404.html` is a copy of `index.html`.** GitHub Pages has no rewrite rule, so this is what lets a deep link survive a hard refresh.
 
 ## Testing

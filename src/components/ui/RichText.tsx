@@ -29,9 +29,27 @@ function BoldRuns({ text }: { text: string }): ReactNode {
     <>
       {parts.map((part, i) =>
         part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
-          <strong key={i} className="font-semibold">
+          <strong key={i} className="font-bold">
             {part.slice(2, -2)}
           </strong>
+        ) : (
+          <ItalicRuns key={i} text={part} />
+        ),
+      )}
+    </>
+  );
+}
+
+/** Runs the single-asterisk pass after bold, so `**x**` is never split here. */
+function ItalicRuns({ text }: { text: string }): ReactNode {
+  const parts = text.split(/(\*[^*]+\*)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith("*") && part.endsWith("*") && part.length > 2 ? (
+          <em key={i} className="italic">
+            {part.slice(1, -1)}
+          </em>
         ) : (
           <span key={i}>{part}</span>
         ),
@@ -40,10 +58,10 @@ function BoldRuns({ text }: { text: string }): ReactNode {
   );
 }
 
-const CALLOUT_STYLES: Record<string, { bg: string; border: string; text: string }> = {
-  info: { bg: "var(--surface-sunken)", border: "var(--border)", text: "var(--text)" },
-  insight: { bg: "var(--accent-soft)", border: "var(--accent)", text: "var(--text)" },
-  warning: { bg: "var(--warn-soft)", border: "var(--warn)", text: "var(--text)" },
+const CALLOUT_STYLES: Record<string, string> = {
+  info: "bg-sunken border-l-line-strong",
+  insight: "bg-accent-soft border-l-accent",
+  warning: "bg-warn-soft border-l-warn",
 };
 
 function BlockView({ block }: { block: Block }) {
@@ -82,13 +100,10 @@ function BlockView({ block }: { block: Block }) {
       );
 
     case "callout": {
-      const style = CALLOUT_STYLES[block.tone] ?? CALLOUT_STYLES.info;
+      const tone = CALLOUT_STYLES[block.tone] ?? CALLOUT_STYLES.info;
       return (
-        <div
-          className="rounded-xl border-l-4 px-4 py-3 text-[0.95rem] leading-relaxed"
-          style={{ background: style.bg, borderLeftColor: style.border, color: style.text }}
-        >
-          {block.title && <p className="mb-1 font-semibold">{block.title}</p>}
+        <div className={`rounded-2xl border-l-4 px-5 py-4 leading-relaxed ${tone}`}>
+          {block.title && <p className="mb-1 font-bold">{block.title}</p>}
           <p>
             <InlineText text={block.text} />
           </p>
@@ -98,17 +113,11 @@ function BlockView({ block }: { block: Block }) {
 
     case "stats":
       return (
-        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {block.items.map((item, i) => (
-            <div
-              key={i}
-              className="rounded-xl px-3 py-2.5"
-              style={{ background: "var(--surface-sunken)" }}
-            >
-              <dt className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
-                {item.label}
-              </dt>
-              <dd className="mt-0.5 text-xl font-semibold tabular-nums">{item.value}</dd>
+            <div key={i} className="bg-sunken rounded-2xl px-4 py-3">
+              <dt className="text-ink-muted text-xs leading-snug font-semibold">{item.label}</dt>
+              <dd className="mt-0.5 text-xl font-extrabold tabular-nums">{item.value}</dd>
             </div>
           ))}
         </dl>
@@ -122,7 +131,7 @@ function BlockView({ block }: { block: Block }) {
 /** Renders a sequence of content blocks with consistent vertical rhythm. */
 export function RichText({ blocks }: { blocks: Block[] }) {
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-4">
       {blocks.map((block, i) => (
         <BlockView key={i} block={block} />
       ))}

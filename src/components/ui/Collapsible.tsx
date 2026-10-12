@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import type { ReactNode } from "react";
+import { Icon } from "./Icon";
 
 /**
  * Optional depth, closed by default.
@@ -21,10 +22,7 @@ export function Collapsible({
   const contentId = useId();
 
   return (
-    <div
-      className="overflow-hidden rounded-xl"
-      style={{ border: "1px solid var(--border)", background: "var(--surface-raised)" }}
-    >
+    <div className="border-line bg-surface overflow-hidden rounded-card border">
       <button
         type="button"
         aria-expanded={open}
@@ -34,22 +32,23 @@ export function Collapsible({
           setOpen(next);
           if (next) onOpen?.();
         }}
-        className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold"
+        className="hover:bg-raised flex min-h-13 w-full items-center justify-between gap-3 px-5 py-3.5 text-left text-[0.95rem] font-bold transition-colors"
       >
-        <span>{title}</span>
-        <span
-          aria-hidden="true"
-          className="shrink-0 text-xs transition-transform duration-200"
-          style={{ color: "var(--text-muted)", transform: open ? "rotate(90deg)" : "none" }}
-        >
-          ▶
+        <span className="flex items-center gap-2.5">
+          <Icon name="sparkle" size={18} className="text-accent" />
+          {title}
         </span>
+        <Icon
+          name="chevron"
+          size={18}
+          className="text-ink-muted transition-transform duration-200"
+          style={{ transform: open ? "rotate(90deg)" : undefined }}
+        />
       </button>
       {open && (
         <div
           id={contentId}
-          className="px-4 pb-4 text-[0.95rem]"
-          style={{ borderTop: "1px solid var(--border)", paddingTop: "0.875rem" }}
+          className="border-line animate-rise border-t px-5 pt-4 pb-5 text-[0.95rem]"
         >
           {children}
         </div>

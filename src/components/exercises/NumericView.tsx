@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { NumericExercise } from "../../content/schema";
 import { validateNumeric } from "../../engine/answerValidator";
 import { Button } from "../ui/Button";
-import type { Feedback } from "./FeedbackBanner";
+import type { Feedback } from "./Feedback";
 
 const UNIT_HINT: Record<NumericExercise["unit"], string> = {
   percent: "Answer as a percentage.",
@@ -15,15 +15,18 @@ export function NumericView({
   submitted,
   wasCorrect,
   onSubmit,
-  onRetry,
 }: {
   exercise: NumericExercise;
   submitted: boolean;
   wasCorrect: boolean;
   onSubmit: (answer: string, correct: boolean, feedback: Feedback) => void;
-  onRetry: () => void;
 }) {
   const [value, setValue] = useState("");
+
+  // Retry lives in the action bar; clear the field when it sends us back.
+  useEffect(() => {
+    if (!submitted) setValue("");
+  }, [submitted]);
 
   function submit() {
     if (value.trim() === "") return;
@@ -49,19 +52,25 @@ export function NumericView({
 
   const hint = UNIT_HINT[exercise.unit];
   const inputId = `numeric-${exercise.id}`;
+  const locked = submitted && wasCorrect;
+
+  const frame = locked
+    ? "border-good bg-good-soft"
+    : submitted
+      ? "border-bad bg-bad-soft"
+      : "border-line-strong bg-surface focus-within:border-accent";
 
   return (
-    <div className="space-y-3">
-      <div>
-        <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium">
-          Your answer
-          {hint && (
-            <span className="ml-1.5 font-normal" style={{ color: "var(--text-muted)" }}>
-              {hint}
-            </span>
-          )}
-        </label>
-        <div className="flex gap-2">
+    <div className="space-y-2.5">
+      <label htmlFor={inputId} className="block text-sm font-bold">
+        Your answer
+        {hint && <span className="text-ink-muted ml-1.5 font-medium">{hint}</span>}
+      </label>
+
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div
+          className={`flex min-h-14 flex-1 basis-40 items-center rounded-2xl border-2 px-4 transition-colors ${frame}`}
+        >
           <input
             id={inputId}
             type="text"
@@ -69,44 +78,27 @@ export function NumericView({
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            disabled={submitted && wasCorrect}
+            disabled={locked}
             value={value}
             placeholder={exercise.placeholder}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !submitted) submit();
             }}
-            className="min-h-11 w-full rounded-xl border px-3.5 text-base tabular-nums disabled:opacity-60"
-            style={{
-              background: "var(--surface)",
-              borderColor: "var(--border)",
-              color: "var(--text)",
-            }}
+            className="placeholder:text-ink-muted/60 w-full bg-transparent text-xl font-bold tabular-nums outline-none disabled:opacity-70"
           />
-          {!submitted && (
-            <Button onClick={submit} disabled={value.trim() === ""}>
-              Check
-            </Button>
-          )}
         </div>
-        {exercise.acceptFraction !== false && (
-          <p className="mt-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
-            Decimals and fractions are both accepted — 0.25 and 1/4 are the same answer.
-          </p>
+        {!submitted && (
+          <Button size="lg" onClick={submit} disabled={value.trim() === ""}>
+            Check
+          </Button>
         )}
       </div>
 
-      {submitted && !wasCorrect && (
-        <Button
-          variant="secondary"
-          className="w-full sm:w-auto"
-          onClick={() => {
-            setValue("");
-            onRetry();
-          }}
-        >
-          Try again
-        </Button>
+      {exercise.acceptFraction !== false && (
+        <p className="text-ink-muted text-xs">
+          Decimals and fractions are both accepted — 0.25 and 1/4 are the same answer.
+        </p>
       )}
     </div>
   );

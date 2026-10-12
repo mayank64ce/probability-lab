@@ -42,22 +42,14 @@ function buildCohort(counts: Record<Category, number>): Category[] {
   return pool;
 }
 
-function PersonIcon({ physics, math }: { physics: boolean; math: boolean }) {
+function PersonIcon({ physics }: { physics: boolean }) {
   return (
-    <svg viewBox="0 0 24 28" className="h-full w-full" aria-hidden="true">
-      <circle
-        cx="12"
-        cy="7"
-        r="5"
-        fill={physics ? "var(--accent)" : "var(--surface-sunken)"}
-        stroke={math ? "var(--accent-text)" : "var(--border)"}
-        strokeWidth={math ? 2 : 1.25}
-      />
+    <svg viewBox="0 0 24 28" className="h-7 w-6" aria-hidden="true">
+      <circle cx="12" cy="8" r="4.6" fill="currentColor" opacity={physics ? 1 : 0.42} />
       <path
-        d="M3 26c0-5 4-8.5 9-8.5s9 3.5 9 8.5z"
-        fill={physics ? "var(--accent)" : "var(--surface-sunken)"}
-        stroke={math ? "var(--accent-text)" : "var(--border)"}
-        strokeWidth={math ? 2 : 1.25}
+        d="M3.5 25.5c0-4.7 3.8-7.9 8.5-7.9s8.5 3.2 8.5 7.9z"
+        fill="currentColor"
+        opacity={physics ? 1 : 0.42}
       />
     </svg>
   );
@@ -104,12 +96,11 @@ export function StudentGrid({ config, onStateChange }: VisualizationProps) {
       : `Only the ${mathCount} mathematics students are still possible. ${counts.both} of them study physics.`;
 
   return (
-    <figure className="space-y-3">
+    <figure className="space-y-4">
       <div
-        className="flex gap-1.5 rounded-xl p-1"
+        className="bg-sunken flex gap-1.5 rounded-2xl p-1.5"
         role="group"
         aria-label="Which students to count"
-        style={{ background: "var(--surface-sunken)" }}
       >
         {(
           [
@@ -122,23 +113,17 @@ export function StudentGrid({ config, onStateChange }: VisualizationProps) {
             type="button"
             aria-pressed={mode === value}
             onClick={() => setMode(value)}
-            className="min-h-10 flex-1 rounded-lg px-2 text-xs font-semibold transition-colors sm:text-sm"
-            style={
-              mode === value
-                ? { background: "var(--accent)", color: "#fff" }
-                : { background: "transparent", color: "var(--text-muted)" }
-            }
+            className={`min-h-11 flex-1 rounded-xl px-2 text-xs font-bold transition-colors sm:text-sm ${
+              mode === value ? "bg-accent text-white shadow-card" : "text-ink-muted hover:text-ink"
+            }`}
           >
             {label}
           </button>
         ))}
       </div>
 
-      <div
-        className="rounded-2xl p-3 sm:p-4"
-        style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}
-      >
-        <ul className="grid grid-cols-5 gap-2 sm:gap-3" role="list">
+      <div className="border-line bg-surface rounded-card border p-4 shadow-card sm:p-5">
+        <ul className="grid grid-cols-5 gap-2 sm:gap-2.5" role="list">
           {cohort.map((category, index) => {
             const math = STUDIES_MATH[category];
             const physics = STUDIES_PHYSICS[category];
@@ -155,58 +140,42 @@ export function StudentGrid({ config, onStateChange }: VisualizationProps) {
             return (
               <li
                 key={index}
-                className="aspect-3/4 transition-opacity duration-300"
+                className={`flex aspect-square items-center justify-center rounded-2xl transition-all duration-300 ${
+                  math ? "bg-accent-soft ring-accent/40 ring-2" : "bg-sunken"
+                } ${physics ? "text-accent" : "text-ink-muted"}`}
                 style={{ opacity: excluded ? 0.15 : 1 }}
               >
                 <span className="sr-only">
                   {`Student ${index + 1}: ${description}${excluded ? ", excluded by the condition" : ""}.`}
                 </span>
-                <PersonIcon physics={physics} math={math} />
+                <PersonIcon physics={physics} />
               </li>
             );
           })}
         </ul>
 
-        <div
-          className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.7rem]"
-          style={{ color: "var(--text-muted)" }}
-        >
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              className="inline-block h-3 w-3 rounded-full"
-              style={{ background: "var(--accent)" }}
-            />
+        <div className="text-ink-muted mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold">
+          <span className="inline-flex items-center gap-2">
+            <span className="bg-accent inline-block h-3 w-3 rounded-full" />
             Studies physics
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              className="inline-block h-3 w-3 rounded-full"
-              style={{
-                background: "var(--surface-sunken)",
-                border: "2px solid var(--accent-text)",
-              }}
-            />
+          <span className="inline-flex items-center gap-2">
+            <span className="bg-accent-soft ring-accent/40 inline-block h-3 w-3 rounded-sm ring-2" />
             Studies mathematics
           </span>
         </div>
       </div>
 
-      <div
-        className="rounded-xl px-4 py-3"
-        style={{ background: "var(--accent-soft)" }}
-        aria-live="polite"
-      >
-        <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+      <div className="bg-accent-soft rounded-card px-5 py-4" aria-live="polite">
+        <p className="text-accent-ink text-xs font-extrabold tracking-wide">
           {mode === "all" ? "P(physics)" : "P(physics | mathematics)"}
         </p>
-        <p className="mt-0.5 text-2xl font-semibold tabular-nums">
+        <p className="mt-1 text-3xl font-extrabold tabular-nums">
           {numerator} / {denominator} = {Math.round(probability * 100)}%
         </p>
       </div>
 
-      <figcaption className="text-sm" style={{ color: "var(--text-muted)" }}>
-        {caption}
-      </figcaption>
+      <figcaption className="text-ink-muted text-sm">{caption}</figcaption>
     </figure>
   );
 }

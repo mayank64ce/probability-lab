@@ -1,5 +1,6 @@
 import type { Hint } from "../../content/schema";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 import { InlineText } from "../ui/RichText";
 
 /**
@@ -28,25 +29,28 @@ export function HintPanel({
   const exhausted = revealed >= hints.length;
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {hints.slice(0, revealed).map((hint, i) => (
         <div
           key={i}
-          className="rounded-xl px-4 py-3 text-[0.95rem] leading-relaxed"
-          style={{ background: "var(--surface-sunken)" }}
+          className="bg-warn-soft animate-rise flex gap-3 rounded-2xl px-4 py-3.5 text-[0.95rem] leading-relaxed"
         >
-          <p className="mb-1 text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-            Hint {i + 1} of {hints.length}
-          </p>
-          <p>
-            <InlineText text={hint.text} />
-          </p>
+          <Icon name="lightbulb" size={18} className="text-warn-ink mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-warn-ink mb-1 text-xs font-extrabold tracking-wide uppercase">
+              Hint {i + 1} of {hints.length}
+            </p>
+            <p>
+              <InlineText text={hint.text} />
+            </p>
+          </div>
         </div>
       ))}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {!exhausted && (
           <Button variant="secondary" onClick={onReveal} disabled={!canReveal}>
+            {!canReveal && <Icon name="lock" size={15} />}
             {revealed === 0 ? "Show a hint" : "Another hint"}
           </Button>
         )}
@@ -57,11 +61,7 @@ export function HintPanel({
         )}
       </div>
 
-      {!canReveal && lockedMessage && (
-        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-          {lockedMessage}
-        </p>
-      )}
+      {!canReveal && lockedMessage && <p className="text-ink-muted text-xs">{lockedMessage}</p>}
     </div>
   );
 }

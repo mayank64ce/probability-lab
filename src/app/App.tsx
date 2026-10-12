@@ -20,7 +20,7 @@ const NotFound = lazy(() => import("../pages/NotFound").then((m) => ({ default: 
 
 function RouteFallback() {
   return (
-    <div className="py-10 text-center text-sm" role="status" style={{ color: "var(--text-muted)" }}>
+    <div className="text-ink-muted py-16 text-center text-sm font-semibold" role="status">
       Loading…
     </div>
   );
@@ -38,6 +38,15 @@ export function App() {
     <ProgressProvider>
       <BrowserRouter basename={ROUTER_BASENAME}>
         <Routes>
+          {/* A lesson takes over the viewport, so it sits outside the shell. */}
+          <Route
+            path="lesson/:lessonId"
+            element={
+              <Suspense fallback={<RouteFallback />}>
+                <LessonPage />
+              </Suspense>
+            }
+          />
           <Route element={<AppShell />}>
             <Route index element={<Dashboard />} />
             <Route
@@ -69,14 +78,6 @@ export function App() {
               element={
                 <Suspense fallback={<RouteFallback />}>
                   <Settings />
-                </Suspense>
-              }
-            />
-            <Route
-              path="lesson/:lessonId"
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <LessonPage />
                 </Suspense>
               }
             />

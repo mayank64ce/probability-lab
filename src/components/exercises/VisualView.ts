@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { VisualExercise } from "../../content/schema";
-import type { Feedback } from "./FeedbackBanner";
+import type { Feedback } from "./Feedback";
 
 /**
  * A visual exercise is graded by the figure itself: the stage forwards the

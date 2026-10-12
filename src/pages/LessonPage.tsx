@@ -8,23 +8,36 @@ import {
   canAdvance,
   clampStageIndex,
   emptyStageState,
+  feedbackVisible,
   isLastStage,
-  lessonProgressRatio,
 } from "../engine/lessonRunner";
 import type { StageState } from "../engine/lessonRunner";
 import type { AttemptRecord } from "../engine/records";
 import { StageView } from "../components/lessons/StageView";
-import type { Feedback } from "../components/exercises/FeedbackBanner";
+import { FeedbackPanel, FEEDBACK_SURFACE } from "../components/exercises/Feedback";
+import type { Feedback } from "../components/exercises/Feedback";
 import { Button } from "../components/ui/Button";
-import { ProgressBar } from "../components/ui/ProgressBar";
+import { SegmentedProgress } from "../components/ui/ProgressBar";
 import { Card } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
+import { Eyebrow } from "../components/ui/Badge";
+import { Icon } from "../components/ui/Icon";
 
 function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `a-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const FOOTER_BORDER: Record<Feedback["tone"], string> = {
+  correct: "border-good/30",
+  partial: "border-warn/30",
+  incorrect: "border-bad/30",
+};
+
+/**
+ * A lesson takes over the whole viewport: no app chrome, one activity, and a
+ * single action bar pinned to the bottom that doubles as the place the verdict
+ * appears. The learner should have nothing to decide except the question.
+ */
 export function LessonPage() {
   const { lessonId = "" } = useParams();
   const navigate = useNavigate();
@@ -148,15 +161,15 @@ export function LessonPage() {
 
   if (!lesson) {
     return (
-      <Card>
-        <h1 className="text-lg font-semibold">Lesson not found</h1>
-        <p className="mt-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
-          No lesson is published under the id “{lessonId}”.
-        </p>
-        <Link to="/learn" className="mt-4 inline-block">
-          <Button variant="secondary">Back to Learn</Button>
-        </Link>
-      </Card>
+      <div className="mx-auto w-full max-w-2xl px-5 py-16">
+        <Card>
+          <h1 className="text-xl font-extrabold">Lesson not found</h1>
+          <p className="text-ink-muted mt-2">No lesson is published under the id “{lessonId}”.</p>
+          <Link to="/learn" className="mt-5 inline-block">
+            <Button variant="secondary">Back to Learn</Button>
+          </Link>
+        </Card>
+      </div>
     );
   }
 
@@ -164,98 +177,104 @@ export function LessonPage() {
     .filter(([, st]) => st.submitted)
     .map(([id]) => id);
   const storedCompleted = stored?.completedStageIds ?? [];
-  const ratio = finished
-    ? 1
-    : lessonProgressRatio(lesson, Array.from(new Set([...completedIds, ...storedCompleted])));
+  const doneIds = new Set([...completedIds, ...storedCompleted]);
+  // A screen counts as done once it has an answer on it, or once the learner
+  // has moved past it — read-only screens never record an answer but are still
+  // genuinely behind you.
+  const doneIndices = new Set(
+    lesson.stages.map((s, i) => (doneIds.has(s.id) || i < index ? i : -1)).filter((i) => i >= 0),
+  );
 
   // ---------------------------------------------------------------- summary
   if (finished) {
     const assess = lesson.stages.find((s) => s.independent);
     const assessState = assess ? stageStates[assess.id] : undefined;
+    const hints = Object.values(stageStates).reduce((n, s) => n + s.hintsRevealed, 0);
 
     return (
-      <div ref={topRef} className="space-y-5">
-        <Card raised>
-          <p
-            className="text-xs font-semibold tracking-wide uppercase"
-            style={{ color: "var(--accent-text)" }}
-          >
-            Lesson complete
-          </p>
-          <h1 className="mt-1.5 text-xl font-semibold">{lesson.title}</h1>
-          <div className="mt-4">
-            <ProgressBar value={1} label="Lesson progress" />
-          </div>
-
-          <dl className="mt-5 grid grid-cols-2 gap-4">
-            <div>
-              <dd className="text-lg font-semibold">
-                {assessState?.correct ? "Correct" : assessState ? "Not yet" : "—"}
-              </dd>
-              <dt className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Unassisted challenge
-              </dt>
-            </div>
-            <div>
-              <dd className="text-lg font-semibold tabular-nums">
-                {Object.values(stageStates).reduce((n, s) => n + s.hintsRevealed, 0)}
-              </dd>
-              <dt className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Hints used
-              </dt>
-            </div>
-          </dl>
-
-          <p className="mt-5 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            One lesson is a start, not mastery. {conceptTitle(lesson.conceptIds[0])} will come back
-            for review after a delay — recalling it then is what makes it stick.
-          </p>
-
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-            <Link to="/" className="flex-1">
-              <Button className="w-full">Back to dashboard</Button>
-            </Link>
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => {
-                setFinished(false);
-                setIndex(0);
-              }}
+      <div className="bg-canvas min-h-dvh">
+        <div ref={topRef} className="mx-auto w-full max-w-2xl space-y-5 px-5 py-10 sm:py-16">
+          <Card tone="accent" className="text-center">
+            <span
+              aria-hidden="true"
+              className="bg-accent mx-auto flex h-16 w-16 items-center justify-center rounded-3xl text-white"
             >
-              Review the lesson
-            </Button>
-          </div>
-        </Card>
+              <Icon name="check" size={34} strokeWidth={2.75} />
+            </span>
+            <div className="mt-5">
+              <Eyebrow>Lesson complete</Eyebrow>
+              <h1 className="mt-2 text-2xl font-extrabold">{lesson.title}</h1>
+            </div>
 
-        {lesson.resources && lesson.resources.length > 0 && (
-          <Card>
-            <h2 className="text-base font-semibold">Go deeper at MIT</h2>
-            <ul className="mt-3 space-y-2">
-              {lesson.resources.map((resource) => (
-                <li key={resource.label}>
-                  <a
-                    href={resource.url}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="block rounded-xl px-3.5 py-3"
-                    style={{
-                      background: "var(--surface-raised)",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
-                    <span className="text-sm font-medium">{resource.label} ↗</span>
-                    {resource.note && (
-                      <span className="mt-0.5 block text-xs" style={{ color: "var(--text-muted)" }}>
-                        {resource.note}
-                      </span>
-                    )}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <dl className="mt-7 grid grid-cols-2 gap-3">
+              <div className="bg-surface/70 rounded-2xl px-4 py-3.5">
+                <dd className="text-xl font-extrabold">
+                  {assessState?.correct ? "Correct" : assessState ? "Not yet" : "—"}
+                </dd>
+                <dt className="text-ink-muted mt-0.5 text-xs font-semibold">
+                  Unassisted challenge
+                </dt>
+              </div>
+              <div className="bg-surface/70 rounded-2xl px-4 py-3.5">
+                <dd className="text-xl font-extrabold tabular-nums">{hints}</dd>
+                <dt className="text-ink-muted mt-0.5 text-xs font-semibold">Hints used</dt>
+              </div>
+            </dl>
           </Card>
-        )}
+
+          <Card>
+            <p className="leading-relaxed">
+              One lesson is a start, not mastery. {conceptTitle(lesson.conceptIds[0])} will come
+              back for review after a delay — recalling it then is what makes it stick.
+            </p>
+            <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+              <Link to="/" className="flex-1">
+                <Button size="lg" className="w-full">
+                  Back to dashboard
+                </Button>
+              </Link>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="flex-1"
+                onClick={() => {
+                  setFinished(false);
+                  setIndex(0);
+                }}
+              >
+                Review the lesson
+              </Button>
+            </div>
+          </Card>
+
+          {lesson.resources && lesson.resources.length > 0 && (
+            <Card>
+              <h2 className="text-lg font-bold">Go deeper at MIT</h2>
+              <ul className="mt-4 space-y-2.5">
+                {lesson.resources.map((resource) => (
+                  <li key={resource.label}>
+                    <a
+                      href={resource.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="border-line hover:border-line-strong hover:bg-raised flex items-start gap-3 rounded-2xl border px-4 py-3.5 transition-colors"
+                    >
+                      <Icon name="external" size={18} className="text-accent mt-0.5" />
+                      <span className="min-w-0">
+                        <span className="block font-bold">{resource.label}</span>
+                        {resource.note && (
+                          <span className="text-ink-muted mt-0.5 block text-sm">
+                            {resource.note}
+                          </span>
+                        )}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
       </div>
     );
   }
@@ -264,83 +283,133 @@ export function LessonPage() {
 
   const advanceAllowed = canAdvance(stage, stageState);
   const last = isLastStage(lesson, index);
+  const showFeedback = feedbackVisible(stage, stageState);
+  const verdict = showFeedback ? (feedback[stage.id] ?? null) : null;
+  // Only numeric answers are worth retrying: a multiple-choice question has
+  // already shown which option was right, so "try again" would be theatre.
+  const canRetry =
+    stageState.submitted && !stageState.correct && stage.exercise?.kind === "numeric";
+
+  const helper = advanceAllowed
+    ? null
+    : stage.independent
+      ? "Answer correctly, or reveal the worked solution, to finish."
+      : "Commit to an answer to continue — being wrong here is part of the lesson.";
 
   function goNext() {
     if (!lesson || !stage) return;
     if (last) {
-      persist(index, Array.from(new Set([...completedIds, ...storedCompleted, stage.id])), true);
+      persist(index, Array.from(new Set([...doneIds, stage.id])), true);
       setFinished(true);
       return;
     }
     const next = index + 1;
     setIndex(next);
-    persist(next, Array.from(new Set([...completedIds, ...storedCompleted])), false);
+    persist(next, Array.from(doneIds), false);
   }
 
   return (
-    <div ref={topRef} className="space-y-5">
-      {/* Header */}
-      <div>
-        <div className="flex items-center justify-between gap-3">
+    <div className="bg-canvas flex min-h-dvh flex-col">
+      <header className="border-line bg-canvas/90 sticky top-0 z-20 border-b backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-4 px-5 py-3.5">
           <button
             type="button"
             onClick={() => navigate("/learn")}
-            className="text-sm font-medium"
-            style={{ color: "var(--text-muted)" }}
+            aria-label="Exit lesson"
+            title="Exit lesson"
+            className="text-ink-muted hover:bg-raised hover:text-ink -ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors"
           >
-            ‹ Exit
+            <Icon name="close" />
           </button>
-          <Badge tone="accent">
-            {STAGE_LABELS[stage.kind]} · {index + 1} of {lesson.stages.length}
-          </Badge>
+          <SegmentedProgress
+            total={lesson.stages.length}
+            current={index}
+            completed={doneIndices}
+            label="Lesson progress"
+          />
+          <span className="text-ink-muted shrink-0 text-xs font-extrabold tabular-nums">
+            {index + 1}/{lesson.stages.length}
+          </span>
         </div>
-        <div className="mt-2.5">
-          <ProgressBar value={ratio} label="Lesson progress" compact />
+      </header>
+
+      <main className="mx-auto w-full max-w-2xl flex-1 px-5 pt-7 pb-10">
+        {/* scroll-mt keeps the sticky header from covering the heading. */}
+        <div ref={topRef} className="scroll-mt-24" />
+
+        <div className="mb-6">
+          <Eyebrow>{STAGE_LABELS[stage.kind]}</Eyebrow>
+          <h1 className="mt-1.5 text-[1.65rem] font-extrabold sm:text-3xl">{stage.title}</h1>
+          {index === 0 && (
+            <p className="text-ink-muted mt-2 text-sm">
+              {lesson.title} · about {lesson.estimatedMinutes} min · builds on{" "}
+              {lesson.prerequisites.join(", ").toLowerCase()}
+            </p>
+          )}
         </div>
-      </div>
 
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">{stage.title}</h1>
-        {index === 0 && (
-          <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-            {lesson.title} · about {lesson.estimatedMinutes} min · builds on{" "}
-            {lesson.prerequisites.join(", ").toLowerCase()}
-          </p>
-        )}
-      </div>
+        <StageView
+          stage={stage}
+          state={stageState}
+          showFeedback={showFeedback}
+          handlers={handlers}
+        />
+      </main>
 
-      <StageView
-        stage={stage}
-        state={stageState}
-        feedback={feedback[stage.id] ?? null}
-        handlers={handlers}
-      />
-
-      {/* Footer navigation */}
-      <div
-        className="sticky bottom-20 z-10 flex gap-2 rounded-2xl p-2 sm:bottom-4"
-        style={{ background: "var(--surface-raised)", border: "1px solid var(--border)" }}
+      <footer
+        className={`sticky bottom-0 z-20 border-t backdrop-blur-md ${
+          verdict
+            ? `${FEEDBACK_SURFACE[verdict.tone]} ${FOOTER_BORDER[verdict.tone]}`
+            : "border-line bg-surface/95"
+        }`}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <Button
-          variant="secondary"
-          disabled={index === 0}
-          onClick={() => setIndex((i) => Math.max(0, i - 1))}
-          aria-label="Previous screen"
-        >
-          Back
-        </Button>
-        <Button className="flex-1" disabled={!advanceAllowed} onClick={goNext}>
-          {last ? "Finish lesson" : "Continue"}
-        </Button>
-      </div>
+        <div className="mx-auto w-full max-w-2xl space-y-3.5 px-5 py-4">
+          {verdict && (
+            <div className="animate-rise">
+              <FeedbackPanel feedback={verdict} />
+            </div>
+          )}
 
-      {!advanceAllowed && (
-        <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
-          {stage.independent
-            ? "Answer correctly, or reveal the worked solution, to finish."
-            : "Commit to an answer to continue — being wrong here is part of the lesson."}
-        </p>
-      )}
+          {helper && <p className="text-ink-muted text-sm font-medium">{helper}</p>}
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              disabled={index === 0}
+              onClick={() => setIndex((i) => Math.max(0, i - 1))}
+              aria-label="Previous screen"
+              title="Previous screen"
+              className="text-ink-muted hover:bg-raised hover:text-ink flex h-13 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors disabled:pointer-events-none disabled:opacity-30"
+            >
+              <Icon name="arrow-left" />
+            </button>
+
+            {canRetry && (
+              <Button variant="secondary" size="lg" onClick={handlers.onRetry}>
+                Try again
+              </Button>
+            )}
+
+            <Button
+              size="lg"
+              className="flex-1"
+              variant={
+                verdict?.tone === "correct"
+                  ? "good"
+                  : verdict?.tone === "incorrect"
+                    ? "bad"
+                    : "primary"
+              }
+              disabled={!advanceAllowed}
+              onClick={goNext}
+            >
+              {last ? "Finish lesson" : "Continue"}
+              <Icon name="chevron" size={18} strokeWidth={2.5} />
+            </Button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

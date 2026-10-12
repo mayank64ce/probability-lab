@@ -38,35 +38,29 @@ export function Settings() {
   }
 
   return (
-    <div className="space-y-7">
-      <section>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+    <div className="space-y-10">
+      <header>
+        <h1 className="text-3xl font-extrabold sm:text-4xl">Settings</h1>
+        <p className="text-ink-muted mt-1.5">
           Your progress lives in this browser only. Nothing is uploaded anywhere.
         </p>
-      </section>
+      </header>
 
       <section>
         <SectionHeading title="Appearance" />
         <Card>
-          <div
-            className="flex gap-1.5 rounded-xl p-1"
-            role="group"
-            aria-label="Theme"
-            style={{ background: "var(--surface-sunken)" }}
-          >
+          <div className="bg-sunken flex gap-1.5 rounded-2xl p-1.5" role="group" aria-label="Theme">
             {(["system", "light", "dark"] as const).map((choice) => (
               <button
                 key={choice}
                 type="button"
                 aria-pressed={state.theme === choice}
                 onClick={() => setTheme(choice)}
-                className="min-h-10 flex-1 rounded-lg text-sm font-semibold capitalize"
-                style={
+                className={`min-h-11 flex-1 rounded-xl text-sm font-bold capitalize transition-colors ${
                   state.theme === choice
-                    ? { background: "var(--accent)", color: "#fff" }
-                    : { background: "transparent", color: "var(--text-muted)" }
-                }
+                    ? "bg-accent text-white shadow-card"
+                    : "text-ink-muted hover:text-ink"
+                }`}
               >
                 {choice}
               </button>
@@ -108,14 +102,15 @@ export function Settings() {
           {notice && (
             <p
               role="status"
-              className="mt-3 text-sm"
-              style={{ color: notice.tone === "ok" ? "var(--correct)" : "var(--wrong)" }}
+              className={`mt-4 text-sm font-bold ${
+                notice.tone === "ok" ? "text-good-ink" : "text-bad-ink"
+              }`}
             >
               {notice.text}
             </p>
           )}
 
-          <hr className="my-4" style={{ borderColor: "var(--border)" }} />
+          <hr className="border-line my-5" />
 
           {confirmingReset ? (
             <div className="space-y-3">
@@ -125,8 +120,8 @@ export function Settings() {
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
+                  variant="bad"
                   className="flex-1"
-                  style={{ background: "var(--wrong)", color: "#fff" }}
                   onClick={() => {
                     reset();
                     setConfirmingReset(false);
@@ -145,7 +140,7 @@ export function Settings() {
               </div>
             </div>
           ) : (
-            <Button variant="ghost" onClick={() => setConfirmingReset(true)}>
+            <Button variant="ghost-bad" onClick={() => setConfirmingReset(true)}>
               Erase all progress
             </Button>
           )}
@@ -155,14 +150,13 @@ export function Settings() {
       <section>
         <SectionHeading title="Attribution" />
         <Card>
-          <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          <p className="text-ink-muted text-sm leading-relaxed">
             The curriculum follows{" "}
             <a
               href={COURSE.url}
               target="_blank"
               rel="noreferrer noopener"
-              className="underline"
-              style={{ color: "var(--accent-text)" }}
+              className="text-accent-ink font-semibold underline"
             >
               {COURSE.code} {COURSE.title}
             </a>
@@ -171,8 +165,7 @@ export function Settings() {
               href={COURSE.licenseUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="underline"
-              style={{ color: "var(--accent-text)" }}
+              className="text-accent-ink font-semibold underline"
             >
               {COURSE.license}
             </a>

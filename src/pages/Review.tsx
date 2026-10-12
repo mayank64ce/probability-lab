@@ -33,8 +33,8 @@ export function Review() {
   return (
     <div className="space-y-7">
       <section>
-        <h1 className="text-2xl font-semibold tracking-tight">Review</h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <h1 className="text-3xl font-extrabold sm:text-4xl">Review</h1>
+        <p className="text-ink-muted mt-1.5">
           Concepts come back on a spaced schedule — sooner if you missed them, later each time you
           recall them cleanly.
         </p>
@@ -44,7 +44,7 @@ export function Review() {
         <SectionHeading title="Due now" />
         {due.length === 0 ? (
           <Card>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="text-ink-muted">
               {touched.length === 0
                 ? "Nothing to review yet. Finish a lesson and concepts will start appearing here."
                 : "Nothing due right now. Check the schedule below for what is coming."}
@@ -59,8 +59,8 @@ export function Review() {
                   <Card>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-medium">{conceptTitle(item.conceptId)}</p>
-                        <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                        <p className="font-bold">{conceptTitle(item.conceptId)}</p>
+                        <p className="text-ink-muted mt-0.5 text-sm">
                           {REVIEW_REASON_LABELS[item.reason]} · {item.stats.correct}/
                           {item.stats.total} correct
                           {item.stats.hintsUsed > 0 && ` · ${item.stats.hintsUsed} hints`}
@@ -71,11 +71,7 @@ export function Review() {
                     {lesson && (
                       <Link
                         to={`/lesson/${lesson.id}`}
-                        className="mt-3 block rounded-xl px-3.5 py-2.5 text-sm font-medium"
-                        style={{
-                          background: "var(--surface-raised)",
-                          border: "1px solid var(--border)",
-                        }}
+                        className="border-line hover:border-accent hover:bg-accent-soft/40 mt-4 block rounded-2xl border-2 px-4 py-3 font-bold transition-colors"
                       >
                         Revisit {lesson.title} ›
                       </Link>
@@ -95,7 +91,7 @@ export function Review() {
             <ul className="space-y-2.5">
               {upcoming.map((item) => (
                 <li key={item.conceptId} className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate text-sm font-medium">
+                  <span className="min-w-0 truncate font-semibold">
                     {conceptTitle(item.conceptId)}
                   </span>
                   <Badge>{formatDue(item.dueAt, now)}</Badge>

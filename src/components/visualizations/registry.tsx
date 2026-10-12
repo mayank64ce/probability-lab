@@ -23,11 +23,7 @@ export function Visualization({
 }) {
   const Component = VISUALIZATIONS[viz];
   if (!Component) {
-    return (
-      <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-        Visualization “{viz}” is not available.
-      </p>
-    );
+    return <p className="text-ink-muted text-sm">Visualization “{viz}” is not available.</p>;
   }
   return <Component config={config ?? {}} onStateChange={onStateChange} />;
 }
