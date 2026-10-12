@@ -211,6 +211,10 @@ describe("the lesson set as a whole", () => {
     const offenders: string[] = [];
     for (const [path, source] of Object.entries(sources)) {
       source.split("\n").forEach((line, i) => {
+        // Only string literals matter. A lone backslash in a comment is just
+        // prose — TeX written in a doc block is never parsed by anything.
+        const trimmed = line.trim();
+        if (trimmed.startsWith("*") || trimmed.startsWith("//") || trimmed.startsWith("/*")) return;
         // Ignore \' and \" which are ordinary quote escaping.
         if (/(?<!\\)\\(?!\\|'|")/.test(line)) offenders.push(`${path}:${i + 1}: ${line.trim()}`);
       });

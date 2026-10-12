@@ -80,6 +80,27 @@ export const LESSON_INDEX: LessonMeta[] = [
     version: "1.0.0",
     stageIds: STAGES("cp04"),
   },
+  {
+    id: "CP-05",
+    title: "When Information Tells You Nothing",
+    blurb:
+      "Pin down what independence really claims — and why it is not the same as being unrelated.",
+    conceptIds: ["independence"],
+    prerequisites: ["Conditional probability", "Bayes' theorem"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("cp05"),
+  },
+  {
+    id: "CP-06",
+    title: "Independence That Depends on What You Know",
+    blurb: "See why two flips of the same coin can be dependent until you know which coin it is.",
+    conceptIds: ["conditional-independence"],
+    prerequisites: ["Independence", "Bayes' theorem", "Total probability"],
+    estimatedMinutes: 10,
+    version: "1.0.0",
+    stageIds: STAGES("cp06"),
+  },
 ];
 
 export const LESSON_META_BY_ID = new Map(LESSON_INDEX.map((l) => [l.id, l]));

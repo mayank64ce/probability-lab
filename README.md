@@ -8,14 +8,14 @@ Lessons teach by guided discovery rather than exposition: you commit to an answe
 
 ## Status
 
-**Four lessons published**, covering the conditioning chain end to end: conditional probability, the multiplication rule, total probability, and Bayes' theorem. The engine behind them, and local progress that survives closing the tab.
+**Six lessons published**, completing the conditioning topic of MIT's Unit I: conditional probability, the multiplication rule, total probability, Bayes' theorem, independence, and conditional independence. The engine behind them, and local progress that survives closing the tab.
 
-Lessons 2–4 were authored ahead of Phase 2 on purpose. A practice session that mixes and schedules over a single lesson's worth of questions cannot be meaningfully judged, so content came first.
+The project is now built **unit by unit**, with Unit I as a complete prototype of what every unit should be — lessons, an exercise bank, working practice and review — rather than in the original plan's horizontal phases.
 
 | Phase | Scope                                        | State       |
 | ----- | -------------------------------------------- | ----------- |
 | 1     | App shell, dashboard, CP-01, local progress  | Complete    |
-| —     | CP-02 to CP-04, the conditioning chain       | Complete    |
+| —     | Unit I · Conditioning topic (CP-01 to CP-06) | Complete    |
 | 2     | Data-driven exercise bank, practice sessions | Not started |
 | 3     | Smart practice and spaced review surfacing   | Not started |
 | 4     | All of Unit I                                | Not started |
@@ -79,7 +79,7 @@ src/
 
 ## Testing
 
-172 tests across eight files.
+202 tests across nine files.
 
 ```bash
 npm test

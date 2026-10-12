@@ -13,6 +13,8 @@ const LOADERS: Record<string, () => Promise<Lesson>> = {
   "CP-02": () => import("./mit-6041/unit-1/cp-02").then((m) => m.CP_02),
   "CP-03": () => import("./mit-6041/unit-1/cp-03").then((m) => m.CP_03),
   "CP-04": () => import("./mit-6041/unit-1/cp-04").then((m) => m.CP_04),
+  "CP-05": () => import("./mit-6041/unit-1/cp-05").then((m) => m.CP_05),
+  "CP-06": () => import("./mit-6041/unit-1/cp-06").then((m) => m.CP_06),
 };
 
 /** Resolves to the full lesson, or undefined when no such lesson is published. */
