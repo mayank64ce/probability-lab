@@ -408,7 +408,7 @@ export const CP_01: Lesson = {
           },
           {
             type: "math",
-            tex: "P(A) = \\frac{P(A \\cap B)}{P(B)} \;\\Longrightarrow\; P(A \\cap B) = P(A)\\,P(B)",
+            tex: "P(A) = \\frac{P(A \\cap B)}{P(B)} \\;\\Longrightarrow\\; P(A \\cap B) = P(A)\\,P(B)",
           },
           {
             type: "paragraph",

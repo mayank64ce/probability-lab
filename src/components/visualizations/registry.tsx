@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { VisualizationProps } from "./types";
 import { StudentGrid } from "./StudentGrid";
 import { EventVenn } from "./EventVenn";
+import { ProbabilityTree } from "./ProbabilityTree";
 
 /**
  * Visualizations are referenced from lesson content by key, so content stays
@@ -10,6 +11,7 @@ import { EventVenn } from "./EventVenn";
 export const VISUALIZATIONS: Record<string, ComponentType<VisualizationProps>> = {
   "student-grid": StudentGrid,
   "event-venn": EventVenn,
+  "probability-tree": ProbabilityTree,
 };
 
 export function Visualization({

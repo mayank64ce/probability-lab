@@ -9,7 +9,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
-import { STORAGE_KEY, loadProgress } from "../storage/progressStore";
+import {
+  STORAGE_KEY,
+  emptyProgress,
+  loadProgress,
+  saveProgress,
+  upsertLessonProgress,
+} from "../storage/progressStore";
+import { CP_01 } from "../content/mit-6041/unit-1/cp-01";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -34,6 +41,29 @@ describe("the dashboard", () => {
     for (const label of ["Unit I", "Unit II", "Unit III", "Unit IV"]) {
       expect(await screen.findByText(label)).toBeInTheDocument();
     }
+  });
+
+  it("moves on to CP-02 once CP-01 is finished", async () => {
+    // Seed a completed CP-01 through the real store, so the test cannot drift
+    // away from the persisted shape.
+    const now = Date.now();
+    saveProgress(
+      upsertLessonProgress(emptyProgress(now), {
+        lessonId: "CP-01",
+        stageIndex: CP_01.stages.length - 1,
+        completedStageIds: CP_01.stages.map((stage) => stage.id),
+        startedAt: now,
+        updatedAt: now,
+        completedAt: now,
+        contentVersion: CP_01.version,
+      }),
+    );
+
+    render(<App />);
+
+    expect(await screen.findByText(/recommended next/i)).toBeInTheDocument();
+    expect(screen.getByText(/walking through an experiment/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /start lesson/i })).toBeInTheDocument();
   });
 
   it("claims no weak concepts before anything is attempted", async () => {

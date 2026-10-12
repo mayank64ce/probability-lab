@@ -2,8 +2,12 @@
 
 import type { ConceptId, Lesson } from "./schema";
 import { CP_01 } from "./mit-6041/unit-1/cp-01";
+import { CP_02 } from "./mit-6041/unit-1/cp-02";
+import { CP_03 } from "./mit-6041/unit-1/cp-03";
+import { CP_04 } from "./mit-6041/unit-1/cp-04";
 
-export const LESSONS: Lesson[] = [CP_01];
+/** Order matters: it is the order the dashboard recommends them in. */
+export const LESSONS: Lesson[] = [CP_01, CP_02, CP_03, CP_04];
 
 export const LESSONS_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));
 

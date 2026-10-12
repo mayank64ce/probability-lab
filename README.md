@@ -8,11 +8,14 @@ Lessons teach by guided discovery rather than exposition: you commit to an answe
 
 ## Status
 
-**Phase 1 — functional vertical slice.** One complete lesson (CP-01, conditional probability), the full engine behind it, and local progress that survives closing the tab.
+**Four lessons published**, covering the conditioning chain end to end: conditional probability, the multiplication rule, total probability, and Bayes' theorem. The engine behind them, and local progress that survives closing the tab.
+
+Lessons 2–4 were authored ahead of Phase 2 on purpose. A practice session that mixes and schedules over a single lesson's worth of questions cannot be meaningfully judged, so content came first.
 
 | Phase | Scope                                        | State       |
 | ----- | -------------------------------------------- | ----------- |
 | 1     | App shell, dashboard, CP-01, local progress  | Complete    |
+| —     | CP-02 to CP-04, the conditioning chain       | Complete    |
 | 2     | Data-driven exercise bank, practice sessions | Not started |
 | 3     | Smart practice and spaced review surfacing   | Not started |
 | 4     | All of Unit I                                | Not started |
@@ -73,7 +76,7 @@ src/
 
 ## Testing
 
-119 tests across six files.
+171 tests across eight files.
 
 ```bash
 npm test
