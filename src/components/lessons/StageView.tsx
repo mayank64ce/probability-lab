@@ -6,6 +6,7 @@ import { Collapsible } from "../ui/Collapsible";
 import { Visualization } from "../visualizations/registry";
 import { MultipleChoiceView } from "../exercises/MultipleChoiceView";
 import { NumericView } from "../exercises/NumericView";
+import { StepsView } from "../exercises/StepsView";
 import { useVisualGrading } from "../exercises/VisualView";
 import type { Feedback } from "../exercises/Feedback";
 import { HintPanel } from "../exercises/HintPanel";
@@ -71,6 +72,14 @@ export function StageView({
 
           {exercise.kind === "multiple-choice" && (
             <MultipleChoiceView
+              exercise={exercise}
+              submitted={state.submitted}
+              onSubmit={handlers.onSubmit}
+            />
+          )}
+
+          {exercise.kind === "steps" && (
+            <StepsView
               exercise={exercise}
               submitted={state.submitted}
               onSubmit={handlers.onSubmit}

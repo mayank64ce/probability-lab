@@ -37,12 +37,12 @@ export function Dashboard() {
   const now = Date.now();
   const data = useMemo(() => dashboardData(state, now), [state, now]);
 
-  const nextLesson = data.recommendedLessonId ? lessonMeta(data.recommendedLessonId) : null;
-  const resumeLesson = data.resumeLessonId ? lessonMeta(data.resumeLessonId) : null;
-  const resumeProgress = resumeLesson
+  const rec = data.recommendation;
+  const heroLesson = rec.lessonId ? lessonMeta(rec.lessonId) : null;
+  const heroProgress = heroLesson
     ? lessonProgressRatio(
-        resumeLesson.stageIds,
-        state.lessons[resumeLesson.id]?.completedStageIds ?? [],
+        heroLesson.stageIds,
+        state.lessons[heroLesson.id]?.completedStageIds ?? [],
       )
     : 0;
 
@@ -55,38 +55,70 @@ export function Dashboard() {
         </p>
       </header>
 
-      {/* Resume takes priority over a fresh recommendation. */}
-      {resumeLesson ? (
+      {/* The hero is driven by performance, not by a fixed order. */}
+      {rec.kind === "resume-lesson" && heroLesson ? (
         <Card tone="accent">
           <Eyebrow>Pick up where you left off</Eyebrow>
-          <h2 className="mt-2 text-2xl font-extrabold">{resumeLesson.title}</h2>
+          <h2 className="mt-2 text-2xl font-extrabold">{heroLesson.title}</h2>
           <div className="mt-5">
-            <ProgressBar value={resumeProgress} label={`${resumeLesson.title} progress`} />
+            <ProgressBar value={heroProgress} label={`${heroLesson.title} progress`} />
             <p className="text-ink-muted mt-2 text-sm font-semibold">
-              {Math.round(resumeProgress * 100)}% complete
+              {Math.round(heroProgress * 100)}% complete
             </p>
           </div>
-          <Link to={`/lesson/${resumeLesson.id}`} className="mt-6 block sm:inline-block">
+          <Link to={`/lesson/${heroLesson.id}`} className="mt-6 block sm:inline-block">
             <Button size="lg" className="w-full sm:w-auto sm:px-10">
               Resume lesson
               <Icon name="chevron" size={18} strokeWidth={2.5} />
             </Button>
           </Link>
         </Card>
-      ) : nextLesson ? (
+      ) : rec.kind === "review-due" ? (
+        <Card tone="accent">
+          <Eyebrow tone="warn">Due for review</Eyebrow>
+          <h2 className="mt-2 text-2xl font-extrabold">
+            {rec.count} concept{rec.count === 1 ? "" : "s"} have come round again
+          </h2>
+          <p className="mt-2 leading-relaxed">
+            Starting with {conceptTitle(rec.conceptId!)}. Recalling something after a delay is what
+            turns practice into memory, so this comes before new material.
+          </p>
+          <Link to="/review" className="mt-6 block sm:inline-block">
+            <Button size="lg" className="w-full sm:w-auto sm:px-10">
+              Start review session
+              <Icon name="chevron" size={18} strokeWidth={2.5} />
+            </Button>
+          </Link>
+        </Card>
+      ) : rec.kind === "practice-weak" ? (
+        <Card tone="accent">
+          <Eyebrow tone="warn">Shore up a weak spot</Eyebrow>
+          <h2 className="mt-2 text-2xl font-extrabold">{conceptTitle(rec.conceptId!)}</h2>
+          <p className="mt-2 leading-relaxed">
+            Your answers on this one have been mixed. A short practice session will do more good
+            than moving on.
+          </p>
+          <Link to="/practice" className="mt-6 block sm:inline-block">
+            <Button size="lg" className="w-full sm:w-auto sm:px-10">
+              Practise this
+              <Icon name="chevron" size={18} strokeWidth={2.5} />
+            </Button>
+          </Link>
+        </Card>
+      ) : rec.kind === "next-lesson" && heroLesson ? (
         <Card tone="accent">
           <Eyebrow>Recommended next</Eyebrow>
-          <h2 className="mt-2 text-2xl font-extrabold">{nextLesson.title}</h2>
-          <p className="mt-2 leading-relaxed">{nextLesson.blurb}</p>
+          <h2 className="mt-2 text-2xl font-extrabold">{heroLesson.title}</h2>
+          <p className="mt-2 leading-relaxed">{heroLesson.blurb}</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Badge tone="accent">{nextLesson.estimatedMinutes} min</Badge>
-            {nextLesson.conceptIds.map((id) => (
+            <Badge tone="accent">{heroLesson.estimatedMinutes} min</Badge>
+            {heroLesson.conceptIds.map((id) => (
               <Badge key={id} tone="outline">
                 {conceptTitle(id)}
               </Badge>
             ))}
           </div>
-          <Link to={`/lesson/${nextLesson.id}`} className="mt-6 block sm:inline-block">
+          <Link to={`/lesson/${heroLesson.id}`} className="mt-6 block sm:inline-block">
             <Button size="lg" className="w-full sm:w-auto sm:px-10">
               Start lesson
               <Icon name="chevron" size={18} strokeWidth={2.5} />
@@ -98,8 +130,8 @@ export function Dashboard() {
           <Eyebrow>All caught up</Eyebrow>
           <h2 className="mt-2 text-2xl font-extrabold">Everything available is complete</h2>
           <p className="mt-2 leading-relaxed">
-            More lessons are being written. Review keeps what you have learned sharp in the
-            meantime.
+            More lessons are being written. Practice and review keep what you have learned sharp in
+            the meantime.
           </p>
         </Card>
       )}

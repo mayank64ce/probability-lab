@@ -103,22 +103,24 @@ interface ExerciseBase {
   hints: Hint[];
   /** Revealed on request, or after a correct answer. */
   solution: Block[];
+  /** Concepts a learner should already hold before meeting this problem. */
+  prerequisites?: ConceptId[];
   /** Attribution when a problem is adapted from an external source. */
   source?: { label: string; url?: string };
 }
 
-export interface MultipleChoiceExercise extends ExerciseBase {
+export interface MultipleChoiceExercise extends ExerciseBase, ChoiceSpec {
   kind: "multiple-choice";
-  choices: Choice[];
-  /** When true the learner must select every correct choice. */
-  multiSelect?: boolean;
 }
 
 /** Unit the answer is expected in; drives unit-slip detection. */
 export type NumericUnit = "probability" | "percent" | "plain";
 
-export interface NumericExercise extends ExerciseBase {
-  kind: "numeric";
+/**
+ * Everything the numeric validator needs, and nothing else — so a derivation
+ * step can be graded by exactly the same function as a standalone exercise.
+ */
+export interface NumericSpec {
   /** Canonical answer expressed in `unit`. */
   value: number;
   /** Absolute tolerance, in the same unit as `value`. */
@@ -128,10 +130,21 @@ export interface NumericExercise extends ExerciseBase {
   acceptFraction?: boolean;
   /** Nudge (not a rejection) when a correct but unreduced fraction is entered. */
   preferSimplified?: boolean;
-  /** Short hint placed in the input, e.g. "20 or 20%". */
-  placeholder?: string;
   /** Feedback when the right number is given in the wrong unit. */
   unitSlipFeedback?: string;
+  /** Short hint placed in the input, e.g. "20 or 20%". */
+  placeholder?: string;
+}
+
+/** Everything the choice validator needs. */
+export interface ChoiceSpec {
+  choices: Choice[];
+  /** When true the learner must select every correct choice. */
+  multiSelect?: boolean;
+}
+
+export interface NumericExercise extends ExerciseBase, NumericSpec {
+  kind: "numeric";
 }
 
 /** A learner-manipulated visualization that has a checkable end state. */
@@ -144,7 +157,35 @@ export interface VisualExercise extends ExerciseBase {
   solvedWhen: string;
 }
 
-export type Exercise = MultipleChoiceExercise | NumericExercise | VisualExercise;
+/**
+ * One checkpoint inside a derivation. Each step is graded on its own, so a
+ * learner who takes a wrong turn is corrected there rather than at the end.
+ */
+export interface DerivationStep {
+  id: string;
+  prompt: Block[];
+  answer: ({ kind: "numeric" } & NumericSpec) | ({ kind: "choice" } & ChoiceSpec);
+  /** Shown after a wrong attempt on this step. */
+  hint?: string;
+}
+
+/** A derivation worked one checkpoint at a time. */
+export interface StepsExercise extends ExerciseBase {
+  kind: "steps";
+  steps: DerivationStep[];
+}
+
+export type Exercise = MultipleChoiceExercise | NumericExercise | VisualExercise | StepsExercise;
+
+/**
+ * A pool of practice problems for one curriculum topic, deliberately kept
+ * apart from the guided lessons: a lesson teaches an idea once, a bank gives
+ * the repetition and variation that mastery actually needs.
+ */
+export interface ExerciseBank {
+  topicId: string;
+  exercises: Exercise[];
+}
 
 // ---------------------------------------------------------------------------
 // Lessons

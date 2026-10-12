@@ -22,7 +22,7 @@ The project is now built **unit by unit**, with Unit I as a complete prototype o
 | 5     | Units II–IV                                  | Not started |
 | 6     | Optional AI tutor                            | Not started |
 
-The Practice screen says plainly that its exercise bank does not exist yet rather than showing a mock session. Review is wired to real attempt data and is simply sparse until more content lands.
+Practice and Review both run real sessions, drawn from a 16-problem conditioning bank that is kept separate from the lessons. What a session serves is chosen by `planSession`, which weights towards missed problems, weak concepts and material whose spaced interval has elapsed.
 
 ## Running it
 
@@ -57,10 +57,12 @@ src/
 │   ├── lessonRunner.ts      Stage navigation rules
 │   ├── masteryTracker.ts    Rule-based mastery states
 │   ├── reviewScheduler.ts   Spaced-repetition interval ladder
+│   ├── practiceSession.ts   Which problems a session serves, and why
 │   └── selectors.ts         Derived dashboard views
 ├── content/
 │   ├── lessonIndex.ts   Lightweight metadata; stages load on demand
-│   └── mit-6041/        Lessons, as data — one lazy chunk each
+│   ├── banks.ts         Practice bank metadata and lazy loaders
+│   └── mit-6041/        Lessons and banks, as data — one lazy chunk each
 ├── storage/            localStorage with versioned migrations
 ├── pages/              Dashboard, Learn, Practice, Review, Settings, Lesson
 └── tests/
@@ -72,6 +74,7 @@ src/
 - **Mastery is never granted for finishing a lesson.** Reaching `proficient` needs three independent correct answers at 75% accuracy; `mastered` additionally requires surviving a gap of a week, because recall after a delay is the thing that matters. Any miss drops the concept straight to `review-needed`.
 - **Validators are pure and exhaustively tested.** Unit slips (`0.2` for a question asking a percentage) and unreduced fractions (`4/12`) get their own named feedback instead of a bare "wrong".
 - **Lesson content is lazy.** `lessonIndex.ts` holds the metadata every screen needs — title, length, stage ids for progress — while the stages themselves live behind a dynamic import, one chunk per lesson. Opening CP-03 downloads CP-03 and nothing else, so the initial bundle stays flat as the curriculum grows instead of gaining ~5 kB gzipped per lesson. A test fails the build if the hand-written index drifts from the lessons.
+- **Practice is a bank, not a replay.** Lesson problems teach an idea once; the topic banks supply the repetition mastery needs, and a test fails the build if a bank problem duplicates a lesson prompt. A first-attempt unhinted correct answer in practice counts as independent evidence — without that, mastery would be unreachable, since six lessons supply only six assessment answers.
 - **Routes are code-split** so KaTeX and its fonts — about 286 kB, pulled in only by lesson content — stay off the critical path. The initial bundle is ~79 kB gzipped.
 - **Design tokens live in Tailwind's `@theme`,** so a themed colour is a real utility (`bg-surface`, `text-ink-muted`) rather than an inline style object on every element. Dark mode reassigns the same custom properties; no component knows which theme is active.
 - **A lesson takes over the viewport.** It routes outside the app shell, with its own header, segmented per-screen progress, and a bottom action bar that doubles as the place the verdict appears — so the answer you just gave stays on screen while the explanation arrives under it.
@@ -79,7 +82,7 @@ src/
 
 ## Testing
 
-202 tests across nine files.
+250 tests across thirteen files.
 
 ```bash
 npm test

@@ -5,7 +5,7 @@
  * tested. The validator — never an AI — is the authority on correctness.
  */
 
-import type { Choice, MultipleChoiceExercise, NumericExercise } from "../content/schema";
+import type { Choice, ChoiceSpec, NumericSpec } from "../content/schema";
 
 // ---------------------------------------------------------------------------
 // Number parsing
@@ -99,7 +99,7 @@ export interface NumericResult {
  * sign is honoured, so "0.2" answers a probability question and "20%" answers
  * a percentage question, and each is converted when it meets the other.
  */
-function toExerciseUnit(parsed: ParsedNumber, unit: NumericExercise["unit"]): number {
+function toExerciseUnit(parsed: ParsedNumber, unit: NumericSpec["unit"]): number {
   if (unit === "percent") {
     return parsed.value;
   }
@@ -110,19 +110,19 @@ function toExerciseUnit(parsed: ParsedNumber, unit: NumericExercise["unit"]): nu
 }
 
 /** The same magnitude expressed in the *other* unit, used to spot unit slips. */
-function inOppositeUnit(parsed: ParsedNumber, unit: NumericExercise["unit"]): number | null {
+function inOppositeUnit(parsed: ParsedNumber, unit: NumericSpec["unit"]): number | null {
   if (unit === "percent") return parsed.hadPercentSign ? null : parsed.value * 100;
   if (unit === "probability") return parsed.hadPercentSign ? null : parsed.value / 100;
   return null;
 }
 
-function outOfRange(value: number, unit: NumericExercise["unit"]): boolean {
+function outOfRange(value: number, unit: NumericSpec["unit"]): boolean {
   if (unit === "percent") return value < 0 || value > 100;
   if (unit === "probability") return value < 0 || value > 1;
   return false;
 }
 
-export function validateNumeric(raw: string, exercise: NumericExercise): NumericResult {
+export function validateNumeric(raw: string, exercise: NumericSpec): NumericResult {
   const parsed = parseNumericInput(raw);
   if (!parsed) {
     return {
@@ -212,10 +212,7 @@ export interface ChoiceResult {
   message?: string;
 }
 
-export function validateChoice(
-  selectedIds: string[],
-  exercise: MultipleChoiceExercise,
-): ChoiceResult {
+export function validateChoice(selectedIds: string[], exercise: ChoiceSpec): ChoiceResult {
   const selected = new Set(selectedIds);
   const byId = new Map<string, Choice>(exercise.choices.map((c) => [c.id, c]));
 

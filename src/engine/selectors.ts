@@ -97,8 +97,51 @@ export function conceptSnapshots(
   });
 }
 
+/**
+ * What the learner should do next, and why.
+ *
+ * Performance drives this, which is the whole point: a learner who has missed
+ * something is sent to practise it rather than marched on to the next lesson.
+ * Finishing an open lesson still comes first — leaving something half-done is
+ * worse than any of the alternatives.
+ */
+export type RecommendationKind =
+  "resume-lesson" | "review-due" | "practice-weak" | "next-lesson" | "all-done";
+
+export interface Recommendation {
+  kind: RecommendationKind;
+  lessonId?: string;
+  conceptId?: ConceptId;
+  /** How many concepts are due, when that is the recommendation. */
+  count?: number;
+}
+
+export function recommend(state: ProgressState, now: number = Date.now()): Recommendation {
+  const open = LESSON_INDEX.find((lesson) => {
+    const p = state.lessons[lesson.id];
+    return p !== undefined && p.completedAt === undefined;
+  });
+  if (open) return { kind: "resume-lesson", lessonId: open.id };
+
+  const touched = attemptedConceptIds(state.attempts);
+
+  const due = dueReviews(touched, state.attempts, now);
+  if (due.length > 0) {
+    return { kind: "review-due", conceptId: due[0].conceptId, count: due.length };
+  }
+
+  const weak = weakConcepts(touched, state.attempts, now);
+  if (weak.length > 0) return { kind: "practice-weak", conceptId: weak[0].conceptId };
+
+  const unstarted = LESSON_INDEX.find((lesson) => state.lessons[lesson.id] === undefined);
+  if (unstarted) return { kind: "next-lesson", lessonId: unstarted.id };
+
+  return { kind: "all-done" };
+}
+
 export interface DashboardData {
   progress: CourseProgress;
+  recommendation: Recommendation;
   recommendedLessonId: string | null;
   resumeLessonId: string | null;
   weak: ReviewItem[];
@@ -117,6 +160,7 @@ export function dashboardData(state: ProgressState, now: number = Date.now()): D
 
   return {
     progress: courseProgress(state),
+    recommendation: recommend(state, now),
     recommendedLessonId: recommendedLessonId(state),
     resumeLessonId: resumeOpen ? resume : null,
     weak: weakConcepts(touched, state.attempts, now),
