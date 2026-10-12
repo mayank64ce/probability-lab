@@ -71,10 +71,15 @@ export function isLastStage(lesson: Lesson, index: number): boolean {
   return index >= lesson.stages.length - 1;
 }
 
-/** Fraction of stages completed, 0–1, for the progress bar. */
-export function lessonProgressRatio(lesson: Lesson, completedStageIds: string[]): number {
-  if (lesson.stages.length === 0) return 0;
-  const known = new Set(lesson.stages.map((s) => s.id));
+/**
+ * Fraction of stages completed, 0–1, for the progress bar.
+ *
+ * Takes stage ids rather than a whole lesson so the dashboard can draw progress
+ * from the metadata index without downloading any lesson content.
+ */
+export function lessonProgressRatio(stageIds: string[], completedStageIds: string[]): number {
+  if (stageIds.length === 0) return 0;
+  const known = new Set(stageIds);
   const done = new Set(completedStageIds.filter((id) => known.has(id)));
-  return done.size / lesson.stages.length;
+  return done.size / stageIds.length;
 }

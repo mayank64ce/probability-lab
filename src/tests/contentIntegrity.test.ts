@@ -9,9 +9,12 @@
 
 import { describe, expect, it } from "vitest";
 import katex from "katex";
-import { LESSONS } from "../content/lessons";
+import { LESSON_INDEX, loadAllLessons } from "../content/lessons";
 import { CONCEPTS_BY_ID } from "../content/curriculum";
 import type { Block, Lesson } from "../content/schema";
+
+// Stages live in their own chunks now, so they are awaited once up front.
+const LESSONS = await loadAllLessons();
 
 /** Every human-readable string in a lesson, wherever it is nested. */
 function stringsIn(lesson: Lesson): string[] {
@@ -140,6 +143,25 @@ describe.each(LESSONS.map((l) => [l.id, l] as const))("%s", (_id, lesson) => {
 });
 
 describe("the lesson set as a whole", () => {
+  it("keeps the metadata index in step with the lessons themselves", () => {
+    expect(LESSON_INDEX.map((m) => m.id)).toEqual(LESSONS.map((l) => l.id));
+
+    for (const lesson of LESSONS) {
+      const meta = LESSON_INDEX.find((m) => m.id === lesson.id);
+      expect(meta, `no index entry for ${lesson.id}`).toBeDefined();
+      expect(meta).toMatchObject({
+        id: lesson.id,
+        title: lesson.title,
+        blurb: lesson.blurb,
+        conceptIds: lesson.conceptIds,
+        prerequisites: lesson.prerequisites,
+        estimatedMinutes: lesson.estimatedMinutes,
+        version: lesson.version,
+        stageIds: lesson.stages.map((s) => s.id),
+      });
+    }
+  });
+
   it("has unique lesson ids", () => {
     const ids = LESSONS.map((l) => l.id);
     expect(new Set(ids).size).toBe(ids.length);

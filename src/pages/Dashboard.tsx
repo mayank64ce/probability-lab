@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import { useProgress } from "../app/ProgressContext";
 import { dashboardData } from "../engine/selectors";
-import { lessonById } from "../content/lessons";
+import { lessonMeta } from "../content/lessons";
 import { UNITS, conceptTitle, conceptsForUnit, COURSE } from "../content/curriculum";
 import { lessonProgressRatio } from "../engine/lessonRunner";
 import { REVIEW_REASON_LABELS } from "../engine/reviewScheduler";
@@ -37,10 +37,13 @@ export function Dashboard() {
   const now = Date.now();
   const data = useMemo(() => dashboardData(state, now), [state, now]);
 
-  const nextLesson = data.recommendedLessonId ? lessonById(data.recommendedLessonId) : null;
-  const resumeLesson = data.resumeLessonId ? lessonById(data.resumeLessonId) : null;
+  const nextLesson = data.recommendedLessonId ? lessonMeta(data.recommendedLessonId) : null;
+  const resumeLesson = data.resumeLessonId ? lessonMeta(data.resumeLessonId) : null;
   const resumeProgress = resumeLesson
-    ? lessonProgressRatio(resumeLesson, state.lessons[resumeLesson.id]?.completedStageIds ?? [])
+    ? lessonProgressRatio(
+        resumeLesson.stageIds,
+        state.lessons[resumeLesson.id]?.completedStageIds ?? [],
+      )
     : 0;
 
   return (

@@ -1,26 +1,35 @@
-/** Registry of every authored lesson, keyed by concept for the Learn screen. */
+/**
+ * Lesson loading.
+ *
+ * Metadata is always available synchronously from `lessonIndex.ts`; the stages
+ * themselves arrive through a dynamic import, so opening CP-04 never downloads
+ * CP-01's prose. Vite turns each entry below into its own chunk.
+ */
 
-import type { ConceptId, Lesson } from "./schema";
-import { CP_01 } from "./mit-6041/unit-1/cp-01";
-import { CP_02 } from "./mit-6041/unit-1/cp-02";
-import { CP_03 } from "./mit-6041/unit-1/cp-03";
-import { CP_04 } from "./mit-6041/unit-1/cp-04";
+import type { Lesson } from "./schema";
 
-/** Order matters: it is the order the dashboard recommends them in. */
-export const LESSONS: Lesson[] = [CP_01, CP_02, CP_03, CP_04];
+const LOADERS: Record<string, () => Promise<Lesson>> = {
+  "CP-01": () => import("./mit-6041/unit-1/cp-01").then((m) => m.CP_01),
+  "CP-02": () => import("./mit-6041/unit-1/cp-02").then((m) => m.CP_02),
+  "CP-03": () => import("./mit-6041/unit-1/cp-03").then((m) => m.CP_03),
+  "CP-04": () => import("./mit-6041/unit-1/cp-04").then((m) => m.CP_04),
+};
 
-export const LESSONS_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));
-
-export function lessonById(id: string): Lesson | undefined {
-  return LESSONS_BY_ID.get(id);
+/** Resolves to the full lesson, or undefined when no such lesson is published. */
+export function loadLesson(id: string): Promise<Lesson> | undefined {
+  return LOADERS[id]?.();
 }
 
-/** Lessons that teach a given concept. Empty until that concept is authored. */
-export function lessonsForConcept(conceptId: ConceptId): Lesson[] {
-  return LESSONS.filter((l) => l.conceptIds.includes(conceptId));
+/** Every published lesson, loaded in parallel. For tests and tooling only. */
+export function loadAllLessons(): Promise<Lesson[]> {
+  return Promise.all(Object.values(LOADERS).map((load) => load()));
 }
 
-/** Concepts that currently have teachable content. */
-export const TAUGHT_CONCEPT_IDS: ConceptId[] = Array.from(
-  new Set(LESSONS.flatMap((l) => l.conceptIds)),
-);
+export {
+  LESSON_INDEX,
+  LESSON_META_BY_ID,
+  TAUGHT_CONCEPT_IDS,
+  lessonMeta,
+  lessonsForConcept,
+} from "./lessonIndex";
+export type { LessonMeta } from "./lessonIndex";

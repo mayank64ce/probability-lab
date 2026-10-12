@@ -111,9 +111,10 @@ describe("stage indexing", () => {
   });
 
   it("measures progress and ignores unknown stage ids", () => {
-    expect(lessonProgressRatio(lesson, [])).toBe(0);
-    expect(lessonProgressRatio(lesson, ["r", "g", "a"])).toBe(1);
-    expect(lessonProgressRatio(lesson, ["r", "r", "bogus"])).toBeCloseTo(1 / 3, 10);
+    const stageIds = lesson.stages.map((s) => s.id);
+    expect(lessonProgressRatio(stageIds, [])).toBe(0);
+    expect(lessonProgressRatio(stageIds, ["r", "g", "a"])).toBe(1);
+    expect(lessonProgressRatio(stageIds, ["r", "r", "bogus"])).toBeCloseTo(1 / 3, 10);
   });
 });
 

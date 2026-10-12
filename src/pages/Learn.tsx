@@ -102,7 +102,7 @@ export function Learn() {
                               {lessons.map((lesson) => {
                                 const progress = state.lessons[lesson.id];
                                 const ratio = lessonProgressRatio(
-                                  lesson,
+                                  lesson.stageIds,
                                   progress?.completedStageIds ?? [],
                                 );
                                 const started = progress !== undefined;

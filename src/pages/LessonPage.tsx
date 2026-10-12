@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { lessonById } from "../content/lessons";
+import { lessonMeta, loadLesson } from "../content/lessons";
 import { conceptTitle } from "../content/curriculum";
 import { STAGE_LABELS } from "../content/schema";
 import { useProgress } from "../app/ProgressContext";
@@ -12,6 +12,7 @@ import {
   isLastStage,
 } from "../engine/lessonRunner";
 import type { StageState } from "../engine/lessonRunner";
+import type { Lesson } from "../content/schema";
 import type { AttemptRecord } from "../engine/records";
 import { StageView } from "../components/lessons/StageView";
 import { FeedbackPanel, FEEDBACK_SURFACE } from "../components/exercises/Feedback";
@@ -43,19 +44,39 @@ export function LessonPage() {
   const navigate = useNavigate();
   const { state, recordAttempt, saveLessonProgress } = useProgress();
 
-  const lesson = lessonById(lessonId);
-  const stored = lesson ? state.lessons[lesson.id] : undefined;
+  // Metadata is synchronous; the stages arrive in their own chunk, so opening
+  // one lesson never downloads another's content.
+  const meta = lessonMeta(lessonId);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const stored = meta ? state.lessons[meta.id] : undefined;
 
   // Resume where the learner left off, the first time this lesson mounts.
-  const [index, setIndex] = useState(() =>
-    lesson ? clampStageIndex(lesson, stored?.stageIndex ?? 0) : 0,
-  );
+  const [index, setIndex] = useState(() => Math.max(0, stored?.stageIndex ?? 0));
   const [stageStates, setStageStates] = useState<Record<string, StageState>>({});
   const [feedback, setFeedback] = useState<Record<string, Feedback | null>>({});
   const [finished, setFinished] = useState(false);
 
   const stageEnteredAt = useRef<number>(Date.now());
   const topRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const pending = loadLesson(lessonId);
+    if (!pending) return;
+    pending
+      .then((loaded) => {
+        if (cancelled) return;
+        setLesson(loaded);
+        setIndex((i) => clampStageIndex(loaded, i));
+      })
+      .catch(() => {
+        if (!cancelled) setLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lessonId]);
 
   const stage = lesson?.stages[index];
   const stageState = stage ? (stageStates[stage.id] ?? emptyStageState()) : emptyStageState();
@@ -72,29 +93,29 @@ export function LessonPage() {
 
   const persist = useCallback(
     (stageIndex: number, completedStageIds: string[], completed: boolean) => {
-      if (!lesson) return;
+      if (!meta) return;
       const now = Date.now();
       saveLessonProgress({
-        lessonId: lesson.id,
+        lessonId: meta.id,
         stageIndex,
         completedStageIds,
         startedAt: now,
         updatedAt: now,
         completedAt: completed ? now : undefined,
-        contentVersion: lesson.version,
+        contentVersion: meta.version,
       });
     },
-    [lesson, saveLessonProgress],
+    [meta, saveLessonProgress],
   );
 
   // Mark the lesson as started as soon as it opens, so "resume" works even if
   // the learner leaves on the very first screen.
   useEffect(() => {
-    if (!lesson) return;
-    if (state.lessons[lesson.id] === undefined) persist(index, [], false);
+    if (!meta) return;
+    if (state.lessons[meta.id] === undefined) persist(index, [], false);
     // Intentionally runs once per lesson mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson?.id]);
+  }, [meta?.id]);
 
   const handleSubmit = useCallback(
     (answer: string, correct: boolean, nextFeedback: Feedback) => {
@@ -159,16 +180,45 @@ export function LessonPage() {
     [handleSubmit, mutateStage],
   );
 
-  if (!lesson) {
+  if (!meta || loadFailed) {
     return (
       <div className="mx-auto w-full max-w-2xl px-5 py-16">
         <Card>
-          <h1 className="text-xl font-extrabold">Lesson not found</h1>
-          <p className="text-ink-muted mt-2">No lesson is published under the id “{lessonId}”.</p>
+          <h1 className="text-xl font-extrabold">
+            {loadFailed ? "This lesson could not be loaded" : "Lesson not found"}
+          </h1>
+          <p className="text-ink-muted mt-2">
+            {loadFailed
+              ? "The connection may have dropped while fetching it. Reload the page to try again."
+              : `No lesson is published under the id “${lessonId}”.`}
+          </p>
           <Link to="/learn" className="mt-5 inline-block">
             <Button variant="secondary">Back to Learn</Button>
           </Link>
         </Card>
+      </div>
+    );
+  }
+
+  if (!lesson) {
+    return (
+      <div className="bg-canvas flex min-h-dvh flex-col">
+        <header className="border-line bg-canvas/90 sticky top-0 z-20 border-b backdrop-blur-md">
+          <div className="mx-auto flex w-full max-w-2xl items-center gap-4 px-5 py-3.5">
+            <button
+              type="button"
+              onClick={() => navigate("/learn")}
+              aria-label="Exit lesson"
+              className="text-ink-muted hover:bg-raised hover:text-ink -ml-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors"
+            >
+              <Icon name="close" />
+            </button>
+            <p className="font-bold">{meta.title}</p>
+          </div>
+        </header>
+        <div role="status" className="text-ink-muted px-5 py-16 text-center text-sm font-semibold">
+          Loading the lesson…
+        </div>
       </div>
     );
   }

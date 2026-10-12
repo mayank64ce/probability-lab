@@ -4,7 +4,7 @@
  */
 
 import type { ConceptId } from "../content/schema";
-import { LESSONS, lessonById } from "../content/lessons";
+import { LESSON_INDEX, lessonMeta } from "../content/lessons";
 import type { AttemptRecord, ProgressState } from "./records";
 import { summarizeConcept, masteryState } from "./masteryTracker";
 import type { ConceptStats, MasteryState } from "./masteryTracker";
@@ -26,15 +26,15 @@ export interface CourseProgress {
 }
 
 export function courseProgress(state: ProgressState): CourseProgress {
-  const entries = Object.values(state.lessons).filter((l) => lessonById(l.lessonId));
+  const entries = Object.values(state.lessons).filter((l) => lessonMeta(l.lessonId));
   const completed = entries.filter((l) => l.completedAt !== undefined).length;
 
   return {
-    lessonsAvailable: LESSONS.length,
+    lessonsAvailable: LESSON_INDEX.length,
     lessonsStarted: entries.length,
     lessonsCompleted: completed,
     conceptsTouched: attemptedConceptIds(state.attempts).length,
-    ratio: LESSONS.length === 0 ? 0 : completed / LESSONS.length,
+    ratio: LESSON_INDEX.length === 0 ? 0 : completed / LESSON_INDEX.length,
   };
 }
 
@@ -43,13 +43,13 @@ export function courseProgress(state: ProgressState): CourseProgress {
  * lesson. Returns null once everything authored so far is complete.
  */
 export function recommendedLessonId(state: ProgressState): string | null {
-  const inProgress = LESSONS.find((lesson) => {
+  const inProgress = LESSON_INDEX.find((lesson) => {
     const p = state.lessons[lesson.id];
     return p !== undefined && p.completedAt === undefined;
   });
   if (inProgress) return inProgress.id;
 
-  const unstarted = LESSONS.find((lesson) => state.lessons[lesson.id] === undefined);
+  const unstarted = LESSON_INDEX.find((lesson) => state.lessons[lesson.id] === undefined);
   return unstarted?.id ?? null;
 }
 
@@ -112,7 +112,7 @@ export function dashboardData(state: ProgressState, now: number = Date.now()): D
   const resume = state.lastLessonId;
   const resumeOpen =
     resume !== undefined &&
-    lessonById(resume) !== undefined &&
+    lessonMeta(resume) !== undefined &&
     state.lessons[resume]?.completedAt === undefined;
 
   return {

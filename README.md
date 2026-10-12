@@ -58,7 +58,9 @@ src/
 │   ├── masteryTracker.ts    Rule-based mastery states
 │   ├── reviewScheduler.ts   Spaced-repetition interval ladder
 │   └── selectors.ts         Derived dashboard views
-├── content/mit-6041/   Lessons, as data
+├── content/
+│   ├── lessonIndex.ts   Lightweight metadata; stages load on demand
+│   └── mit-6041/        Lessons, as data — one lazy chunk each
 ├── storage/            localStorage with versioned migrations
 ├── pages/              Dashboard, Learn, Practice, Review, Settings, Lesson
 └── tests/
@@ -69,14 +71,15 @@ src/
 - **`localStorage`, not IndexedDB.** A few thousand attempt records at most, and synchronous reads keep the UI simple. The interface in `storage/progressStore.ts` is narrow enough that swapping the backend touches one file. Migrations are versioned from day one.
 - **Mastery is never granted for finishing a lesson.** Reaching `proficient` needs three independent correct answers at 75% accuracy; `mastered` additionally requires surviving a gap of a week, because recall after a delay is the thing that matters. Any miss drops the concept straight to `review-needed`.
 - **Validators are pure and exhaustively tested.** Unit slips (`0.2` for a question asking a percentage) and unreduced fractions (`4/12`) get their own named feedback instead of a bare "wrong".
-- **Routes are code-split** so KaTeX and its fonts — about 286 kB, pulled in only by lesson content — stay off the critical path. The initial bundle is ~94 kB gzipped.
+- **Lesson content is lazy.** `lessonIndex.ts` holds the metadata every screen needs — title, length, stage ids for progress — while the stages themselves live behind a dynamic import, one chunk per lesson. Opening CP-03 downloads CP-03 and nothing else, so the initial bundle stays flat as the curriculum grows instead of gaining ~5 kB gzipped per lesson. A test fails the build if the hand-written index drifts from the lessons.
+- **Routes are code-split** so KaTeX and its fonts — about 286 kB, pulled in only by lesson content — stay off the critical path. The initial bundle is ~79 kB gzipped.
 - **Design tokens live in Tailwind's `@theme`,** so a themed colour is a real utility (`bg-surface`, `text-ink-muted`) rather than an inline style object on every element. Dark mode reassigns the same custom properties; no component knows which theme is active.
 - **A lesson takes over the viewport.** It routes outside the app shell, with its own header, segmented per-screen progress, and a bottom action bar that doubles as the place the verdict appears — so the answer you just gave stays on screen while the explanation arrives under it.
 - **`404.html` is a copy of `index.html`.** GitHub Pages has no rewrite rule, so this is what lets a deep link survive a hard refresh.
 
 ## Testing
 
-171 tests across eight files.
+172 tests across eight files.
 
 ```bash
 npm test
