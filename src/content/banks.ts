@@ -31,10 +31,34 @@ export const BANK_INDEX: BankMeta[] = [
     ],
     byDifficulty: { 1: 3, 2: 4, 3: 4, 4: 3, 5: 2 },
   },
+  {
+    topicId: "foundations",
+    count: 15,
+    conceptIds: ["sample-spaces", "probability-axioms", "counting"],
+    byDifficulty: { 1: 3, 2: 4, 3: 3, 4: 3, 5: 2 },
+  },
+  {
+    topicId: "discrete-random-variables",
+    count: 15,
+    conceptIds: [
+      "discrete-random-variables",
+      "probability-mass-functions",
+      "expectation",
+      "variance",
+      "joint-pmfs",
+      "independence",
+      "functions-of-random-variables",
+      "conditional-expectation-discrete",
+    ],
+    byDifficulty: { 1: 3, 2: 4, 3: 3, 4: 3, 5: 2 },
+  },
 ];
 
 const LOADERS: Record<string, () => Promise<ExerciseBank>> = {
   conditioning: () => import("./mit-6041/banks/conditioning").then((m) => m.CONDITIONING_BANK),
+  foundations: () => import("./mit-6041/banks/foundations").then((m) => m.FOUNDATIONS_BANK),
+  "discrete-random-variables": () =>
+    import("./mit-6041/banks/discrete-random-variables").then((m) => m.DISCRETE_RV_BANK),
 };
 
 export const BANKED_TOPIC_IDS = BANK_INDEX.map((b) => b.topicId);

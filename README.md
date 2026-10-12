@@ -8,21 +8,21 @@ Lessons teach by guided discovery rather than exposition: you commit to an answe
 
 ## Status
 
-**Six lessons published**, completing the conditioning topic of MIT's Unit I: conditional probability, the multiplication rule, total probability, Bayes' theorem, independence, and conditional independence. The engine behind them, and local progress that survives closing the tab.
+**Unit I is complete.** All 16 concepts have a lesson, all three topics have a practice bank, and practice and review both run real sessions. The engine behind them, and local progress that survives closing the tab.
 
 The project is now built **unit by unit**, with Unit I as a complete prototype of what every unit should be — lessons, an exercise bank, working practice and review — rather than in the original plan's horizontal phases.
 
-| Phase | Scope                                        | State       |
-| ----- | -------------------------------------------- | ----------- |
-| 1     | App shell, dashboard, CP-01, local progress  | Complete    |
-| —     | Unit I · Conditioning topic (CP-01 to CP-06) | Complete    |
-| 2     | Data-driven exercise bank, practice sessions | Not started |
-| 3     | Smart practice and spaced review surfacing   | Not started |
-| 4     | All of Unit I                                | Not started |
-| 5     | Units II–IV                                  | Not started |
-| 6     | Optional AI tutor                            | Not started |
+| Phase | Scope                                           | State        |
+| ----- | ----------------------------------------------- | ------------ |
+| 1     | App shell, dashboard, CP-01, local progress     | Complete     |
+| —     | **Unit I — all 16 concepts, 3 banks, practice** | **Complete** |
+| 2     | Data-driven exercise bank, practice sessions    | Complete     |
+| 3     | Smart practice and spaced review surfacing      | Complete     |
+| 4     | All of Unit I                                   | Complete     |
+| 5     | Units II–IV                                     | Not started  |
+| 6     | Optional AI tutor                               | Not started  |
 
-Practice and Review both run real sessions, drawn from a 16-problem conditioning bank that is kept separate from the lessons. What a session serves is chosen by `planSession`, which weights towards missed problems, weak concepts and material whose spaced interval has elapsed.
+Practice and Review both run real sessions, drawn from 46 bank problems across the three topics, kept separate from the lessons. What a session serves is chosen by `planSession`, which weights towards missed problems, weak concepts and material whose spaced interval has elapsed.
 
 ## Running it
 
@@ -31,14 +31,15 @@ npm install
 npm run dev          # http://localhost:5173/probability-lab/
 ```
 
-| Script              | Does                                         |
-| ------------------- | -------------------------------------------- |
-| `npm run dev`       | Dev server with hot reload                   |
-| `npm test`          | Unit and integration tests (Vitest)          |
-| `npm run typecheck` | TypeScript, no emit                          |
-| `npm run build`     | Typecheck then production build into `dist/` |
-| `npm run preview`   | Serve the production build locally           |
-| `npm run format`    | Prettier over the repo                       |
+| Script              | Does                                          |
+| ------------------- | --------------------------------------------- |
+| `npm run dev`       | Dev server with hot reload                    |
+| `npm test`          | Unit and integration tests (Vitest)           |
+| `npm run typecheck` | TypeScript, no emit                           |
+| `npm run build`     | Typecheck then production build into `dist/`  |
+| `npm run preview`   | Serve the production build locally            |
+| `npm run format`    | Prettier over the repo                        |
+| `npm run e2e`       | Playwright smoke tests against the real build |
 
 ## Architecture
 
@@ -75,14 +76,14 @@ src/
 - **Validators are pure and exhaustively tested.** Unit slips (`0.2` for a question asking a percentage) and unreduced fractions (`4/12`) get their own named feedback instead of a bare "wrong".
 - **Lesson content is lazy.** `lessonIndex.ts` holds the metadata every screen needs — title, length, stage ids for progress — while the stages themselves live behind a dynamic import, one chunk per lesson. Opening CP-03 downloads CP-03 and nothing else, so the initial bundle stays flat as the curriculum grows instead of gaining ~5 kB gzipped per lesson. A test fails the build if the hand-written index drifts from the lessons.
 - **Practice is a bank, not a replay.** Lesson problems teach an idea once; the topic banks supply the repetition mastery needs, and a test fails the build if a bank problem duplicates a lesson prompt. A first-attempt unhinted correct answer in practice counts as independent evidence — without that, mastery would be unreachable, since six lessons supply only six assessment answers.
-- **Routes are code-split** so KaTeX and its fonts — about 286 kB, pulled in only by lesson content — stay off the critical path. The initial bundle is ~79 kB gzipped.
+- **Routes are code-split** so KaTeX and its fonts — about 286 kB, pulled in only by lesson content — stay off the critical path. The initial bundle is ~76 kB gzipped, and does not grow as lessons are added.
 - **Design tokens live in Tailwind's `@theme`,** so a themed colour is a real utility (`bg-surface`, `text-ink-muted`) rather than an inline style object on every element. Dark mode reassigns the same custom properties; no component knows which theme is active.
 - **A lesson takes over the viewport.** It routes outside the app shell, with its own header, segmented per-screen progress, and a bottom action bar that doubles as the place the verdict appears — so the answer you just gave stays on screen while the explanation arrives under it.
 - **`404.html` is a copy of `index.html`.** GitHub Pages has no rewrite rule, so this is what lets a deep link survive a hard refresh.
 
 ## Testing
 
-250 tests across thirteen files.
+401 tests across sixteen files, plus a six-test Playwright smoke suite (`npm run e2e`) that drives the built bundle in a real Chrome.
 
 ```bash
 npm test

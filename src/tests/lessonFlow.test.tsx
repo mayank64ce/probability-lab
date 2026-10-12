@@ -16,23 +16,30 @@ import {
   saveProgress,
   upsertLessonProgress,
 } from "../storage/progressStore";
-import { CP_01 } from "../content/mit-6041/unit-1/cp-01";
+import { LESSON_INDEX } from "../content/lessons";
+
+const [FIRST, SECOND] = LESSON_INDEX;
 
 beforeEach(() => {
   window.localStorage.clear();
   window.history.pushState({}, "", "/");
 });
 
-async function openLesson(user: ReturnType<typeof userEvent.setup>) {
+/**
+ * Opens CP-01 directly rather than through the dashboard's recommendation.
+ * The recommendation now depends on performance and on curriculum order, and
+ * these tests are about the lesson runner, not about what gets suggested.
+ */
+async function openLesson(_user: ReturnType<typeof userEvent.setup>) {
+  window.history.pushState({}, "", "/lesson/CP-01");
   render(<App />);
-  await user.click(await screen.findByRole("button", { name: /start lesson/i }));
   expect(await screen.findByText(/a class of 100 students/i)).toBeInTheDocument();
 }
 
 describe("the dashboard", () => {
-  it("recommends CP-01 to a brand new learner", async () => {
+  it("starts a brand new learner at the beginning of the curriculum", async () => {
     render(<App />);
-    expect(await screen.findByText(/when information changes probability/i)).toBeInTheDocument();
+    expect(await screen.findByText(/listing what can happen/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /start lesson/i })).toBeInTheDocument();
   });
 
@@ -43,26 +50,26 @@ describe("the dashboard", () => {
     }
   });
 
-  it("moves on to CP-02 once CP-01 is finished", async () => {
+  it("moves on to the next lesson once the first is finished", async () => {
     // Seed a completed CP-01 through the real store, so the test cannot drift
     // away from the persisted shape.
     const now = Date.now();
     saveProgress(
       upsertLessonProgress(emptyProgress(now), {
-        lessonId: "CP-01",
-        stageIndex: CP_01.stages.length - 1,
-        completedStageIds: CP_01.stages.map((stage) => stage.id),
+        lessonId: FIRST.id,
+        stageIndex: FIRST.stageIds.length - 1,
+        completedStageIds: FIRST.stageIds,
         startedAt: now,
         updatedAt: now,
         completedAt: now,
-        contentVersion: CP_01.version,
+        contentVersion: FIRST.version,
       }),
     );
 
     render(<App />);
 
     expect(await screen.findByText(/recommended next/i)).toBeInTheDocument();
-    expect(screen.getByText(/walking through an experiment/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(SECOND.title, "i"))).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /start lesson/i })).toBeInTheDocument();
   });
 

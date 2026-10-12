@@ -36,8 +36,44 @@ const STAGES = (prefix: string): string[] => [
   `${prefix}-assess`,
 ];
 
-/** Order matters: it is the order the dashboard recommends lessons in. */
+/**
+ * Order matters: it is the order the dashboard recommends lessons in, so it
+ * follows the curriculum rather than the order the lessons were written.
+ */
 export const LESSON_INDEX: LessonMeta[] = [
+  {
+    id: "FN-01",
+    title: "Listing What Can Happen",
+    blurb:
+      "Build the list of outcomes a probability model rests on — and see what breaks without it.",
+    conceptIds: ["sample-spaces"],
+    prerequisites: ["Fractions and percentages"],
+    estimatedMinutes: 8,
+    version: "1.0.0",
+    stageIds: STAGES("fn01"),
+  },
+  {
+    id: "FN-02",
+    title: "The Three Rules Everything Rests On",
+    blurb:
+      "Learn the axioms as constraints — what a set of probabilities is and is not allowed to be.",
+    conceptIds: ["probability-axioms"],
+    prerequisites: ["Sample spaces and events"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("fn02"),
+  },
+  {
+    id: "FN-03",
+    title: "Counting Without Listing",
+    blurb:
+      "Count the outcomes of an experiment too large to write down — and know when order matters.",
+    conceptIds: ["counting"],
+    prerequisites: ["Sample spaces and events", "Probability axioms"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("fn03"),
+  },
   {
     id: "CP-01",
     title: "When Information Changes Probability",
@@ -100,6 +136,77 @@ export const LESSON_INDEX: LessonMeta[] = [
     estimatedMinutes: 10,
     version: "1.0.0",
     stageIds: STAGES("cp06"),
+  },
+  {
+    id: "RV-01",
+    title: "Turning Outcomes Into Numbers",
+    blurb: "Meet the random variable: not a number, but a rule that attaches one to every outcome.",
+    conceptIds: ["discrete-random-variables"],
+    prerequisites: ["Sample spaces and events"],
+    estimatedMinutes: 8,
+    version: "1.0.0",
+    stageIds: STAGES("rv01"),
+  },
+  {
+    id: "RV-02",
+    title: "The Shape of a Random Variable",
+    blurb: "Collect all the probabilities of a random variable into one object — its distribution.",
+    conceptIds: ["probability-mass-functions"],
+    prerequisites: ["Discrete random variables", "Probability axioms"],
+    estimatedMinutes: 8,
+    version: "1.0.0",
+    stageIds: STAGES("rv02"),
+  },
+  {
+    id: "RV-03",
+    title: "Where the Distribution Balances",
+    blurb:
+      "Find the long-run average of a random variable, and see why it is rarely a value it takes.",
+    conceptIds: ["expectation"],
+    prerequisites: ["Probability mass functions"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("rv03"),
+  },
+  {
+    id: "RV-04",
+    title: "How Far From the Middle",
+    blurb: "Measure spread, and see why two very different variables can share an average.",
+    conceptIds: ["variance"],
+    prerequisites: ["Expectation", "Probability mass functions"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("rv04"),
+  },
+  {
+    id: "RV-05",
+    title: "Changing the Variable",
+    blurb: "Transform a random variable, and find out why the average does not transform with it.",
+    conceptIds: ["functions-of-random-variables"],
+    prerequisites: ["Expectation", "Probability mass functions"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("rv05"),
+  },
+  {
+    id: "RV-06",
+    title: "Two Variables at Once",
+    blurb: "Describe a pair of random variables together, and recover each one from the pair.",
+    conceptIds: ["joint-pmfs"],
+    prerequisites: ["Probability mass functions", "Conditional probability"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("rv06"),
+  },
+  {
+    id: "RV-07",
+    title: "Averages Under a Condition",
+    blurb: "Take an expectation inside a condition, then rebuild the whole average from the cases.",
+    conceptIds: ["conditional-expectation-discrete"],
+    prerequisites: ["Expectation", "Conditional probability", "Total probability"],
+    estimatedMinutes: 9,
+    version: "1.0.0",
+    stageIds: STAGES("rv07"),
   },
 ];
 

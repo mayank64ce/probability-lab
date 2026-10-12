@@ -143,13 +143,11 @@ function StepInput({
   if (step.answer.kind === "choice") {
     const spec = step.answer;
     return (
-      <div role="radiogroup" aria-label="Step options" className="space-y-2">
+      <div role="group" aria-label="Step options" className="space-y-2">
         {spec.choices.map((choice) => (
           <button
             key={choice.id}
             type="button"
-            role="radio"
-            aria-checked={false}
             onClick={() =>
               validateChoice([choice.id], spec).correct
                 ? onAccept(step, choice.label)

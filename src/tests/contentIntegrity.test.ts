@@ -10,7 +10,7 @@
 import { describe, expect, it } from "vitest";
 import katex from "katex";
 import { LESSON_INDEX, loadAllLessons } from "../content/lessons";
-import { CONCEPTS_BY_ID } from "../content/curriculum";
+import { CONCEPTS_BY_ID, UNITS, conceptsForUnit } from "../content/curriculum";
 import type { Block, Lesson } from "../content/schema";
 
 // Stages live in their own chunks now, so they are awaited once up front.
@@ -159,6 +159,33 @@ describe("the lesson set as a whole", () => {
         version: lesson.version,
         stageIds: lesson.stages.map((s) => s.id),
       });
+    }
+  });
+
+  /**
+   * A unit counts as complete only when every concept in it has a lesson.
+   * Unit I is the prototype the later units are measured against, so it is
+   * asserted explicitly rather than left to inspection.
+   */
+  it("gives every concept in Unit I a lesson", () => {
+    const taught = new Set(LESSONS.flatMap((l) => l.conceptIds));
+    const missing = conceptsForUnit("unit-1")
+      .filter((c) => !taught.has(c.id))
+      .map((c) => c.title);
+    expect(missing).toEqual([]);
+  });
+
+  it("reports honestly on the units that are not finished yet", () => {
+    // Guards against a later unit being silently half-covered: either a unit
+    // has every concept taught, or none of them.
+    for (const unit of UNITS.filter((u) => u.id !== "unit-1")) {
+      const taught = new Set(LESSONS.flatMap((l) => l.conceptIds));
+      const covered = conceptsForUnit(unit.id).filter((c) => taught.has(c.id));
+      const all = conceptsForUnit(unit.id);
+      expect(
+        covered.length === 0 || covered.length === all.length,
+        `${unit.label} is partially covered: ${covered.length} of ${all.length}`,
+      ).toBe(true);
     }
   });
 

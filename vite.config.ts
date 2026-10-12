@@ -1,5 +1,6 @@
 import { copyFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
@@ -15,7 +16,7 @@ function spaFallback(): Plugin {
     name: "spa-404-fallback",
     apply: "build",
     closeBundle() {
-      const dir = resolve(__dirname, "dist");
+      const dir = resolve(dirname(fileURLToPath(import.meta.url)), "dist");
       copyFileSync(resolve(dir, "index.html"), resolve(dir, "404.html"));
     },
   };

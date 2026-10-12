@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import type { MultipleChoiceExercise } from "../../content/schema";
 import { validateChoice } from "../../engine/answerValidator";
 import { Button } from "../ui/Button";
@@ -25,6 +26,31 @@ export function MultipleChoiceView({
   useEffect(() => {
     if (!submitted) setSelected([]);
   }, [submitted]);
+
+  const groupRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * Arrow keys move between options, as a radio group is expected to behave.
+   * Without this a keyboard user has to tab through every choice, and screen
+   * readers announce a group that does not respond the way they describe it.
+   */
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const keys = ["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"];
+    if (!keys.includes(event.key) || submitted) return;
+
+    const options = Array.from(
+      groupRef.current?.querySelectorAll<HTMLButtonElement>("[data-choice]") ?? [],
+    );
+    if (options.length === 0) return;
+
+    const active = options.findIndex((el) => el === document.activeElement);
+    const step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : -1;
+    const next = options[(Math.max(active, 0) + step + options.length) % options.length];
+
+    event.preventDefault();
+    next.focus();
+    toggle(next.dataset.choice ?? "");
+  }
 
   function toggle(id: string) {
     if (submitted) return;
@@ -55,9 +81,11 @@ export function MultipleChoiceView({
   return (
     <div className="space-y-4">
       <div
+        ref={groupRef}
         role={multi ? "group" : "radiogroup"}
         aria-label="Answer choices"
         className="space-y-2.5"
+        onKeyDown={onKeyDown}
       >
         {exercise.choices.map((choice, i) => {
           const isSelected = selected.includes(choice.id);
@@ -86,6 +114,9 @@ export function MultipleChoiceView({
               type="button"
               role={multi ? "checkbox" : "radio"}
               aria-checked={isSelected}
+              data-choice={choice.id}
+              // Roving tabindex: one stop for the whole group, as ARIA expects.
+              tabIndex={submitted || isSelected || (selected.length === 0 && i === 0) ? 0 : -1}
               disabled={submitted}
               onClick={() => toggle(choice.id)}
               className={`pressable flex w-full items-center gap-3.5 rounded-2xl border-2 px-4 py-3.5 text-left text-[1rem] font-semibold disabled:cursor-default ${shell}`}
